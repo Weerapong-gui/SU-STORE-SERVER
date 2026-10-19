@@ -20,7 +20,7 @@ HOME_BLOCK_TYPES = ("hero", "featured", "categories", "text", "imageText", "allP
 DEFAULT_ACCENT = "#0071e3"
 # Corner roundness in percent of the original design: 0 = square, 100 = as designed.
 DEFAULT_RADIUS = 100
-# Storefront font ids; the families and Google Fonts URLs live in src/lib/fonts.ts (keep in sync).
+# Storefront font ids; the families and Google Fonts URLs live in src/lib/theme/fonts.ts (keep in sync).
 HOME_FONTS = ("sarabun", "prompt", "kanit", "noto-sans-thai", "ibm-plex-sans-thai", "anuphan", "mitr",
               "chakra-petch", "bai-jamjuree", "pridi")
 DEFAULT_FONT = "sarabun"

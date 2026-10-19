@@ -30,3 +30,13 @@ def test_swappable_settings_are_never_imported_by_name():
                 if alias.name in SWAPPABLE.get(module, set()):
                     offenders.append(f"{path.relative_to(SERVER)}:{node.lineno} imports {module}.{alias.name}")
     assert not offenders, "read these through the module instead:\n" + "\n".join(offenders)
+
+
+def test_store_never_imports_legacy_fp28():
+    offenders = []
+    for path in sorted((SERVER / "store").glob("*.py")):
+        for node in ast.walk(ast.parse(path.read_text())):
+            names = [node.module or ""] if isinstance(node, ast.ImportFrom) else (
+                [a.name for a in node.names] if isinstance(node, ast.Import) else [])
+            offenders += [f"{path.relative_to(SERVER)}:{node.lineno} imports {n}" for n in names if n.split(".")[0] == "legacy_fp28"]
+    assert not offenders, "move what the store needs into core/ instead:\n" + "\n".join(offenders)

@@ -1,0 +1,387 @@
+openapi: "3.1.0"
+info:
+  title: SU Order API
+  version: "1.0"
+  description: |
+    Backend API for SU STORE — Fresher Package 28th ordering system.
+    All admin endpoints require `Authorization: Bearer {ORDER_API_TOKEN}`.
+    Customer order endpoints use `X-Order-Token: {accessToken}` from the cookie set at order creation.
+
+servers:
+  - url: https://admin.sumfu.xyz
+    description: Production
+
+security:
+  - bearerAuth: []
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+    orderToken:
+      type: apiKey
+      in: header
+      name: X-Order-Token
+
+  schemas:
+    OrderStatus:
+      type: string
+      enum:
+        - pending_payment
+        - waiting_confirm
+        - paid
+        - preparing
+        - shipped
+        - received
+        - cancelled
+        - rejected
+
+    OrderItem:
+      type: object
+      properties:
+        id:          { type: string }
+        product:     { type: object }
+        size:        { type: string }
+        school:      { type: string }
+        quantity:    { type: integer }
+        unitPrice:   { type: number }
+        totalAmount: { type: number }
+
+    Order:
+      type: object
+      properties:
+        id:           { type: string, example: "FP28001 1" }
+        orderCode:    { type: string, example: "FP28001 1" }
+        status:       { $ref: "#/components/schemas/OrderStatus" }
+        fullName:     { type: string }
+        studentCode:  { type: string }
+        phone:        { type: string }
+        email:        { type: string }
+        school:       { type: string }
+        parentPhone:  { type: string }
+        totalAmount:  { type: number }
+        productName:  { type: string }
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/OrderItem" }
+        slipPath:     { type: string, nullable: true }
+        khantokTicket:       { type: boolean }
+        khantokTicketValue:  { type: integer, nullable: true }
+        createdAt:    { type: string, format: date-time }
+        updatedAt:    { type: string, format: date-time }
+
+    Product:
+      type: object
+      properties:
+        slug:         { type: string }
+        name:         { type: string }
+        shortName:    { type: string }
+        price:        { type: number }
+        category:     { type: string, enum: [single, jacket, headband] }
+        requiresSize: { type: integer, enum: [0, 1] }
+        requiresSchool: { type: integer, enum: [0, 1] }
+        available:    { type: integer, enum: [0, 1] }
+
+    Error:
+      type: object
+      properties:
+        message: { type: string }
+
+paths:
+  /health:
+    get:
+      summary: Health check
+      security: []
+      responses:
+        "200":
+          description: API is up
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: ok }
+
+  /products:
+    get:
+      summary: List products
+      security: []
+      responses:
+        "200":
+          description: Product list
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Product" }
+
+  /orders:
+    post:
+      summary: Create an order
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [customer, items, totalAmount]
+              properties:
+                customer:
+                  type: object
+                  properties:
+                    studentCode: { type: string }
+                    fullName:    { type: string }
+                    email:       { type: string }
+                    phone:       { type: string }
+                    school:      { type: string }
+                    parentPhone: { type: string }
+                items:
+                  type: array
+                  items: { $ref: "#/components/schemas/OrderItem" }
+                totalAmount: { type: number }
+      responses:
+        "200":
+          description: Order created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - { $ref: "#/components/schemas/Order" }
+                  - type: object
+                    properties:
+                      accessToken:   { type: string }
+                      khantokTicket: { type: boolean }
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /orders/{orderId}:
+    get:
+      summary: Get order by ID
+      security:
+        - bearerAuth: []
+        - orderToken: []
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Order details
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Order" }
+        "404":
+          description: Not found
+
+  /orders/{orderId}/slip:
+    patch:
+      summary: Upload payment slip
+      security:
+        - orderToken: []
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                slip:       { type: string, format: binary }
+                uploadedAt: { type: string, format: date-time }
+      responses:
+        "200":
+          description: Slip uploaded
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Order" }
+        "400":
+          description: Not allowed (wrong status or already uploaded)
+        "403":
+          description: Wrong order status
+
+  /check-order:
+    get:
+      summary: Check orders by student code or order code
+      security: []
+      parameters:
+        - name: studentCode
+          in: query
+          schema: { type: string }
+        - name: code
+          in: query
+          schema: { type: string }
+      responses:
+        "200":
+          description: Matching orders
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  orders:
+                    type: array
+                    items: { $ref: "#/components/schemas/Order" }
+        "404":
+          description: No orders found
+
+  /site-status:
+    get:
+      summary: Get site open/closed/schedule status
+      security: []
+      responses:
+        "200":
+          description: Site status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  siteClosed:              { type: boolean }
+                  scheduleClosed:          { type: boolean }
+                  scheduleWarning:         { type: boolean }
+                  scheduleWarningMessage:  { type: string }
+                  scheduleEnabled:         { type: boolean }
+
+  /admin/orders:
+    get:
+      summary: List all orders (admin)
+      parameters:
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: per_page
+          in: query
+          schema: { type: integer, default: 50, maximum: 200 }
+        - name: search
+          in: query
+          schema: { type: string }
+        - name: status
+          in: query
+          schema: { $ref: "#/components/schemas/OrderStatus" }
+        - name: studentCode
+          in: query
+          schema: { type: string }
+        - name: round
+          in: query
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Paginated order list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  orders:  { type: array, items: { $ref: "#/components/schemas/Order" } }
+                  total:   { type: integer }
+                  page:    { type: integer }
+                  perPage: { type: integer }
+                  pages:   { type: integer }
+        "401":
+          description: Unauthorized
+
+  /admin/orders/{orderId}/status:
+    patch:
+      summary: Change order status
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status: { $ref: "#/components/schemas/OrderStatus" }
+                note:   { type: string }
+      responses:
+        "200":
+          description: Status updated
+        "400":
+          description: Invalid status transition
+        "401":
+          description: Unauthorized
+
+  /admin/analytics:
+    get:
+      summary: Get analytics data
+      responses:
+        "200":
+          description: Analytics summary
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:       { type: integer }
+                  revenue:     { type: number }
+                  profit:      { type: number }
+                  schoolCount: { type: integer }
+                  bySchool:    { type: array, items: { type: array } }
+                  byProduct:   { type: array, items: { type: array } }
+                  byStatus:    { type: array, items: { type: array } }
+                  byDay:       { type: array, items: { type: array } }
+
+  /admin/site-settings:
+    get:
+      summary: Get site settings
+      responses:
+        "200":
+          description: Current settings
+    patch:
+      summary: Update site settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteClosed:             { type: boolean }
+                scheduleEnabled:        { type: boolean }
+                scheduleWarningMessage: { type: string }
+                announcementText:       { type: string }
+                announcementEnabled:    { type: boolean }
+      responses:
+        "200":
+          description: Settings saved
+
+  /admin/backups:
+    get:
+      summary: List order backups
+      responses:
+        "200":
+          description: Backup list
+    post:
+      summary: Create a backup
+      responses:
+        "200":
+          description: Backup created
+
+  /admin/audit-log:
+    get:
+      summary: Get audit log
+      parameters:
+        - name: order_code
+          in: query
+          schema: { type: string }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 100 }
+      responses:
+        "200":
+          description: Audit log entries

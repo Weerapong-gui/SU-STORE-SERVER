@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SU STORE — Sales Live</title>
+<style>
+@font-face {
+  font-family: 'SukhumvitSet';
+  src: url('/fonts/SukhumvitSet.ttc') format('truetype');
+  font-weight: 100 900;
+  font-display: swap;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #ffffff;
+  --tile: #ffffff;
+  --divider: #e5e7eb;
+  --accent: #4f6ef7;
+  --label: #94a3b8;
+  --num: #0f172a;
+  --suffix: #475569;
+  --live: #16a34a;
+  --live-off: #dc2626;
+}
+html, body {
+  height: 100%; width: 100%;
+  background: var(--bg); color: var(--num);
+  font-family: 'SukhumvitSet','Sarabun','Noto Sans Thai',system-ui,sans-serif;
+  font-weight: 800;
+  overflow: hidden;
+}
+.wrap {
+  position: fixed; inset: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+.tile {
+  position: relative;
+  display: flex; flex-direction: column; justify-content: center;
+  padding: clamp(24px, 5vw, 96px);
+  border-bottom: 6px solid var(--accent);
+  min-width: 0;
+}
+.tile + .tile { border-left: 1px solid var(--divider); }
+.label {
+  color: var(--label);
+  font-weight: 700;
+  font-size: clamp(18px, 2.4vw, 40px);
+  letter-spacing: .02em;
+  margin-bottom: clamp(6px, 1vw, 18px);
+}
+.value {
+  display: flex; align-items: baseline; gap: .18em;
+  color: var(--num);
+  line-height: 1;
+}
+.odometer {
+  display: inline-flex; align-items: flex-start;
+  font-size: clamp(60px, 13vw, 240px);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.digit {
+  display: inline-block; height: 1em; line-height: 1em;
+  overflow: hidden; vertical-align: top;
+}
+.digit .col {
+  display: flex; flex-direction: column;
+  transition: transform .8s cubic-bezier(.16, 1, .3, 1);
+  will-change: transform;
+}
+.digit .num { height: 1em; line-height: 1em; display: block; text-align: center; }
+.comma { display: inline-block; }
+.suffix {
+  color: var(--suffix);
+  font-size: clamp(24px, 3.2vw, 64px);
+  font-weight: 700;
+}
+.livebar {
+  position: fixed; top: clamp(16px, 2vw, 32px); right: clamp(16px, 2vw, 32px);
+  display: flex; align-items: center; gap: 10px;
+  font-size: clamp(13px, 1.2vw, 20px); font-weight: 700;
+  letter-spacing: .12em; text-transform: uppercase;
+  color: var(--live);
+}
+.livebar .dot {
+  width: .8em; height: .8em; border-radius: 50%;
+  background: var(--live);
+  box-shadow: 0 0 0 0 rgba(22,163,74,.6);
+  animation: pulse 1.6s ease-out infinite;
+}
+.livebar.off { color: var(--live-off); }
+.livebar.off .dot { background: var(--live-off); animation: none; box-shadow: none; }
+@keyframes pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(22,163,74,.55); }
+  70%  { box-shadow: 0 0 0 .9em rgba(22,163,74,0); }
+  100% { box-shadow: 0 0 0 0 rgba(22,163,74,0); }
+}
+@media (max-width: 720px) {
+  .wrap { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; }
+  .tile + .tile { border-left: none; border-top: 1px solid var(--divider); }
+}
+</style>
+</head>
+<body>
+<div class="livebar" id="livebar"><span class="dot"></span><span>Live</span></div>
+<div class="wrap">
+  <div class="tile">
+    <div class="label">โปโล</div>
+    <div class="value"><span class="odometer" id="poloOdo"></span><span class="suffix">ตัว</span></div>
+  </div>
+  <div class="tile">
+    <div class="label">แจ็คเก็ต</div>
+    <div class="value"><span class="odometer" id="jacketOdo"></span><span class="suffix">ตัว</span></div>
+  </div>
+</div>
+<script>
+(function () {
+  var poloOdo = document.getElementById('poloOdo');
+  var jacketOdo = document.getElementById('jacketOdo');
+  var livebar = document.getElementById('livebar');
+
+  function buildDigit() {
+    var d = document.createElement('span');
+    d.className = 'digit';
+    var col = document.createElement('span');
+    col.className = 'col';
+    for (var i = 0; i < 10; i++) {
+      var n = document.createElement('span');
+      n.className = 'num';
+      n.textContent = String(i);
+      col.appendChild(n);
+    }
+    d.appendChild(col);
+    d._col = col;
+    return d;
+  }
+
+  // Render `value` into `odo` as an odometer. Digit reels roll to the new digit;
+  // reels start at 0 so the first paint rolls up from zero (count-up feel).
+  function render(odo, value) {
+    var str = Math.max(0, value | 0).toLocaleString('en-US'); // "2,993"
+    var rebuilt = false;
+    if (odo._str === undefined || odo._str.length !== str.length) {
+      odo.innerHTML = '';
+      odo._cells = [];
+      for (var i = 0; i < str.length; i++) {
+        if (str[i] === ',') {
+          var c = document.createElement('span');
+          c.className = 'comma';
+          c.textContent = ',';
+          odo.appendChild(c);
+          odo._cells.push(null);
+        } else {
+          var d = buildDigit();
+          odo.appendChild(d);
+          odo._cells.push(d);
+        }
+      }
+      rebuilt = true;
+    }
+    odo._str = str;
+
+    function assign() {
+      for (var i = 0; i < str.length; i++) {
+        var cell = odo._cells[i];
+        if (cell) {
+          cell._col.style.transform = 'translateY(-' + parseInt(str[i], 10) + 'em)';
+        }
+      }
+    }
+
+    if (rebuilt) {
+      // paint reels at 0 first, then roll up to the target
+      requestAnimationFrame(function () { requestAnimationFrame(assign); });
+    } else {
+      assign();
+    }
+  }
+
+  function setLive(ok) {
+    if (ok) livebar.classList.remove('off');
+    else livebar.classList.add('off');
+  }
+
+  function tick() {
+    fetch('/dis3/data', { cache: 'no-store' })
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        render(poloOdo, j.polo || 0);
+        render(jacketOdo, j.jacket || 0);
+        setLive(true);
+      })
+      .catch(function () { setLive(false); });
+  }
+
+  tick();
+  setInterval(tick, 3000);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,454 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SU STORE Orders</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f6f7;
+      --panel: #ffffff;
+      --ink: #111114;
+      --muted: #626773;
+      --line: #d9d9df;
+      --blue: #0071e3;
+      --green: #027a48;
+      --orange: #b45309;
+      --red: #b42318;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    header, main {
+      width: min(1320px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+    header {
+      padding: 30px 0 18px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 20px;
+      border-bottom: 1px solid var(--line);
+    }
+    .eyebrow {
+      margin: 0 0 6px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+    }
+    h1 {
+      margin: 0;
+      font-size: clamp(32px, 5vw, 56px);
+      letter-spacing: -.05em;
+      line-height: 1;
+    }
+    main { padding: 18px 0 48px; }
+    .toolbar {
+      display: grid;
+      grid-template-columns: minmax(220px, 1.2fr) minmax(180px, 1fr) minmax(160px, .8fr) auto;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    input, select, button {
+      min-height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+      color: var(--ink);
+      font: inherit;
+    }
+    input, select { width: 100%; padding: 0 12px; }
+    button {
+      cursor: pointer;
+      padding: 0 16px;
+      font-weight: 800;
+    }
+    button.primary {
+      border-color: var(--blue);
+      background: var(--blue);
+      color: #fff;
+    }
+    button.secondary { background: #fff; }
+    button:disabled {
+      cursor: not-allowed;
+      opacity: .5;
+    }
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      border: 1px solid var(--line);
+      background: var(--panel);
+      margin-bottom: 12px;
+    }
+    .summary-item {
+      padding: 14px;
+      border-right: 1px solid var(--line);
+    }
+    .summary-item:last-child { border-right: 0; }
+    .summary-item span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+    .summary-item strong {
+      display: block;
+      margin-top: 6px;
+      font-size: 22px;
+      letter-spacing: -.04em;
+    }
+    .notice {
+      min-height: 24px;
+      margin: 0 0 12px;
+      color: var(--muted);
+    }
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      background: var(--panel);
+    }
+    table {
+      width: 100%;
+      min-width: 1180px;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+    th, td {
+      padding: 12px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+      word-wrap: break-word;
+    }
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: #fbfbfc;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+    tr:last-child td { border-bottom: 0; }
+    .muted { color: var(--muted); }
+    .money {
+      color: var(--blue);
+      font-weight: 900;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      padding: 0 8px;
+      border-radius: 999px;
+      background: #eef2ff;
+      font-size: 12px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+    .badge.waiting_confirm { background: #fff7ed; color: var(--orange); }
+    .badge.paid, .badge.preparing, .badge.shipped { background: #ecfdf3; color: var(--green); }
+    .badge.received { background: #f5f3ff; color: #7c3aed; }
+    .badge.rejected, .badge.cancelled { background: #fef3f2; color: var(--red); }
+    .empty {
+      padding: 28px;
+      color: var(--muted);
+      text-align: center;
+    }
+    .tiny { font-size: 12px; }
+    @media (max-width: 900px) {
+      header { display: block; }
+      .toolbar { grid-template-columns: 1fr 1fr; }
+      .summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .summary-item:nth-child(2n) { border-right: 0; }
+      .summary-item { border-bottom: 1px solid var(--line); }
+    }
+    @media (max-width: 560px) {
+      header, main { width: min(100% - 24px, 1320px); }
+      .toolbar { grid-template-columns: 1fr; }
+      .summary { grid-template-columns: 1fr; }
+      .summary-item { border-right: 0; }
+    }
+    .modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 100; overflow-y: auto; padding: 32px 16px; }
+    .modal-backdrop.open { display: flex; align-items: flex-start; justify-content: center; }
+    .modal { background: #fff; border-radius: 16px; width: min(620px,100%); padding: 28px; }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <p class="eyebrow">SU STORE SERVER</p>
+      <h1>Order Display</h1>
+    </div>
+    <p class="muted">Read-only view from the Docker order database</p>
+  </header>
+  <main>
+    <section class="toolbar">
+      <input id="tokenInput" type="password" autocomplete="current-password" placeholder="ORDER_API_TOKEN" />
+      <input id="searchInput" type="search" placeholder="Search order, name, phone, school" />
+      <select id="statusFilter">
+        <option value="">All status</option>
+        <option value="pending_payment">pending_payment</option>
+        <option value="waiting_confirm">waiting_confirm</option>
+        <option value="paid">paid</option>
+        <option value="preparing">preparing</option>
+        <option value="shipped">Ready to Receive</option>
+        <option value="cancelled">cancelled</option>
+        <option value="rejected">rejected</option>
+      </select>
+      <button class="primary" id="refreshButton">Refresh</button>
+    </section>
+    <section class="summary" id="summary"></section>
+    <p class="notice" id="notice"></p>
+    <section class="table-wrap" id="tableWrap"></section>
+  </main>
+
+  <!-- SLIP MODAL -->
+  <div class="modal-backdrop" id="slipModal">
+    <div class="modal">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px">
+        <div>
+          <h2 style="margin:0 0 4px;font-size:20px;font-weight:700;letter-spacing:-.03em" id="slipModalTitle">Slip</h2>
+          <div style="font-size:14px;color:var(--muted)">Total: <strong id="slipModalAmount" style="color:var(--ink)"></strong></div>
+        </div>
+        <button id="closeSlipBtn" style="background:#fff;border:1px solid var(--line);border-radius:8px;font-size:20px;line-height:1;padding:4px 10px;cursor:pointer;min-height:0">×</button>
+      </div>
+      <div id="slipModalContent"></div>
+    </div>
+  </div>
+
+  <script>
+    const tokenInput = document.querySelector("#tokenInput");
+    const searchInput = document.querySelector("#searchInput");
+    const statusFilter = document.querySelector("#statusFilter");
+    const refreshButton = document.querySelector("#refreshButton");
+    const notice = document.querySelector("#notice");
+    const summary = document.querySelector("#summary");
+    const tableWrap = document.querySelector("#tableWrap");
+    let allOrders = [];
+    let serverSummary = {};
+
+    // Use sessionStorage (cleared on tab/browser close) to match admin.html — do not
+    // persist a full-privilege admin token to localStorage on shared/kiosk machines.
+    tokenInput.value = sessionStorage.getItem("suStoreOrderViewToken") || "";
+
+    function text(value) {
+      return String(value ?? "").replace(/[&<>"']/g, (match) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+      })[match]);
+    }
+
+    function baht(value) {
+      return new Intl.NumberFormat("th-TH", {
+        style: "currency",
+        currency: "THB",
+        maximumFractionDigits: 0
+      }).format(Number(value || 0));
+    }
+
+    function setNotice(message, isError = false) {
+      notice.textContent = message;
+      notice.style.color = isError ? "var(--red)" : "var(--muted)";
+    }
+
+    function filteredOrders() {
+      const query = searchInput.value.trim().toLowerCase();
+      const status = statusFilter.value;
+      return allOrders.filter((order) => {
+        const customer = order.customer || {};
+        const product = order.product || {};
+        const haystack = [
+          order.id,
+          order.status,
+          product.name,
+          product.category,
+          customer.fullName,
+          customer.studentCode,
+          customer.email,
+          customer.phone,
+          customer.school,
+          order.size
+        ].join(" ").toLowerCase();
+        return (!status || order.status === status) && (!query || haystack.includes(query));
+      });
+    }
+
+    function renderSummary(orders) {
+      const totalAmount = orders.reduce((sum, order) => sum + Number(order.totalAmount || 0), 0);
+      const k100Used = Number(serverSummary.khantokTicket100Used || 0);
+      const k100Remaining = Number(serverSummary.khantokTicket100Remaining || 0);
+      const k100Quota = Number(serverSummary.khantokTicket100Quota || 0);
+      const k50Used = Number(serverSummary.khantokTicket50Used || 0);
+      const k50Remaining = Number(serverSummary.khantokTicket50Remaining || 0);
+      const k50Quota = Number(serverSummary.khantokTicket50Quota || 0);
+      const items = [
+        ["Showing", orders.length],
+        ["All Orders", serverSummary.total || allOrders.length],
+        ["Waiting Confirm", serverSummary.waitingConfirm || 0],
+        ["Total Amount", baht(totalAmount)],
+        ["บัตรขันโตก ฿100", `ใช้ ${k100Used} / ${k100Quota} ใบ (เหลือ ${k100Remaining})`],
+        ["บัตรขันโตก ฿50", `ใช้ ${k50Used} / ${k50Quota} ใบ (เหลือ ${k50Remaining})`],
+      ];
+
+      summary.innerHTML = items.map(([label, value]) => `
+        <div class="summary-item"><span>${text(label)}</span><strong>${text(value)}</strong></div>
+      `).join("");
+    }
+
+    function renderOrders() {
+      const orders = filteredOrders();
+      renderSummary(orders);
+      if (!orders.length) {
+        tableWrap.innerHTML = '<div class="empty">No orders to display</div>';
+        return;
+      }
+
+      tableWrap.innerHTML = `
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 11%">Order</th>
+              <th style="width: 11%">Status</th>
+              <th style="width: 18%">Customer</th>
+              <th style="width: 19%">Product</th>
+              <th style="width: 9%">Amount</th>
+              <th style="width: 10%">Khantok</th>
+              <th style="width: 12%">Slip</th>
+              <th style="width: 10%">Created</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${orders.map((order) => {
+              const customer = order.customer || {};
+              const product = order.product || {};
+              const slip = order.slip;
+              return `
+                <tr>
+                  <td><strong>${text(order.id || "-")}</strong></td>
+                  <td><span class="badge ${text(order.status || "")}">${order.status === "shipped" ? "Ready to Receive" : order.status === "received" ? "Received ✓" : text(order.status || "-")}</span>${order.status === "received" && order.receivedBy ? '<br><span class="tiny muted">โดย ' + text(order.receivedBy) + '</span>' : ''}</td>
+                  <td>
+                    <strong>${text(customer.fullName || "-")}</strong><br />
+                    <span class="tiny">${text(customer.studentCode || "-")}</span><br />
+                    <span class="tiny muted">${text(customer.phone || "")}</span><br />
+                    <span class="tiny muted">${text(customer.email || "")}</span>
+                  </td>
+                  <td>
+                    <strong>${text(product.name || "-")}</strong><br />
+                    <span class="tiny">Size: ${text(order.size || "-")} / Qty: ${text(order.quantity || 0)}</span><br />
+                    <span class="tiny muted">${text(customer.school || "")}</span>
+                  </td>
+                  <td class="money">${text(baht(order.totalAmount))}</td>
+                  <td>${order.khantokTicket ? `ได้รับ (฿${order.khantokTicketValue || 100})` : order.khantokTicketAlreadyClaimed ? "รับไปแล้ว " + text(order.customer?.studentCode || "") : "ไม่ได้รับ"}</td>
+                  <td>
+                    <span class="tiny">${text(order.paymentStatus || "-")}</span><br />
+                    <button class="secondary slipButton" data-order-id="${text(order.id || "")}" ${slip ? "" : "disabled"}>Open Slip</button>
+                  </td>
+                  <td class="tiny muted">${text(order.createdAt || "")}</td>
+                </tr>
+              `;
+            }).join("")}
+          </tbody>
+        </table>
+      `;
+    }
+
+    async function loadOrders() {
+      const token = tokenInput.value.trim();
+      if (!token) {
+        setNotice("Enter ORDER_API_TOKEN to load orders", true);
+        return;
+      }
+      sessionStorage.setItem("suStoreOrderViewToken", token);
+      refreshButton.disabled = true;
+      setNotice("Loading orders...");
+      try {
+        const response = await fetch("/admin/orders", {
+          headers: { "Authorization": `Bearer ${token}` },
+          cache: "no-store"
+        });
+        if (!response.ok) {
+          throw new Error(await response.text());
+        }
+        const payload = await response.json();
+        allOrders = payload.orders || [];
+        serverSummary = payload.summary || {};
+        renderOrders();
+        setNotice(`Loaded ${allOrders.length} orders`);
+      } finally {
+        refreshButton.disabled = false;
+      }
+    }
+
+    async function openSlip(orderId, totalAmount) {
+      const modal = document.querySelector("#slipModal");
+      const content = document.querySelector("#slipModalContent");
+      document.querySelector("#slipModalTitle").textContent = "Slip — " + orderId;
+      document.querySelector("#slipModalAmount").textContent = baht(totalAmount);
+      content.innerHTML = '<p style="color:var(--muted);text-align:center;padding:24px">Loading...</p>';
+      modal.classList.add("open");
+      try {
+        const response = await fetch(`/admin/orders/${encodeURIComponent(orderId)}/slip`, {
+          headers: { "Authorization": `Bearer ${tokenInput.value.trim()}` }
+        });
+        if (!response.ok) throw new Error(await response.text());
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        if (blob.type === "application/pdf") {
+          content.innerHTML = `<iframe src="${url}" style="width:100%;height:500px;border:0;border-radius:8px"></iframe>`;
+        } else {
+          content.innerHTML = `<img src="${url}" style="max-width:100%;border-radius:8px" />`;
+        }
+        setTimeout(() => URL.revokeObjectURL(url), 120000);
+      } catch (error) {
+        content.innerHTML = `<p style="color:var(--red);text-align:center">${String(error.message).replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"})[c])}</p>`;
+      }
+    }
+
+    refreshButton.addEventListener("click", () => loadOrders().catch((error) => setNotice(error.message, true)));
+    searchInput.addEventListener("input", renderOrders);
+    statusFilter.addEventListener("change", renderOrders);
+    document.addEventListener("click", (event) => {
+      const slipButton = event.target.closest(".slipButton");
+      if (slipButton) {
+        const order = allOrders.find((o) => o.id === slipButton.dataset.orderId);
+        openSlip(slipButton.dataset.orderId, order ? order.totalAmount : 0).catch((error) => setNotice(error.message, true));
+      }
+    });
+
+    document.querySelector("#closeSlipBtn").addEventListener("click", () => {
+      document.querySelector("#slipModal").classList.remove("open");
+      document.querySelector("#slipModalContent").innerHTML = "";
+    });
+    document.querySelector("#slipModal").addEventListener("click", function(e) {
+      if (e.target === this) {
+        this.classList.remove("open");
+        document.querySelector("#slipModalContent").innerHTML = "";
+      }
+    });
+
+    if (tokenInput.value) {
+      loadOrders().catch((error) => setNotice(error.message, true));
+    } else {
+      setNotice("Enter ORDER_API_TOKEN to load orders");
+      renderSummary([]);
+      renderOrders();
+    }
+  </script>
+</body>
+</html>

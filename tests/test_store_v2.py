@@ -18,7 +18,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 sys.modules.setdefault("ocr", MagicMock())
 
 import order_api  # noqa: E402
-from fp28 import auth, config, database, slips  # noqa: E402
+from core import auth, config, database, slips  # noqa: E402
 from store import categories, dashboard, db, home  # noqa: E402
 from store import meta as store_meta  # noqa: E402
 

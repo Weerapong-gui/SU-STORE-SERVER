@@ -1,5 +1,5 @@
 import pytest
-from fp28 import visitors
+from legacy_fp28 import visitors
 
 ID_A = "3f2b8c1e-9a4d-4e7b-8c2a-1d5e6f7a8b9c"
 ID_B = "7c1d2e3f-4a5b-4c6d-8e9f-0a1b2c3d4e5f"

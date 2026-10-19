@@ -56,7 +56,7 @@ def _norm_text(text: str) -> str:
 
 def _modules() -> list[Any]:
     """order_api plus any module it was split into, so patches follow the code."""
-    return [m for name, m in sys.modules.items() if m is not None and (name == "order_api" or name.startswith("fp28"))]
+    return [m for name, m in sys.modules.items() if m is not None and (name == "order_api" or name.startswith(("core", "legacy_fp28")))]
 
 
 def _has(name: str) -> bool:
@@ -64,7 +64,7 @@ def _has(name: str) -> bool:
 
 
 def _find(name: str) -> Any:
-    """`name` from wherever it lives now (order_api or an fp28 module)."""
+    """`name` from wherever it lives now (order_api or a core / legacy_fp28 module)."""
     for m in _modules():
         if name in vars(m):
             return vars(m)[name]
@@ -73,7 +73,7 @@ def _find(name: str) -> Any:
 
 def _patch(monkeypatch: pytest.MonkeyPatch, name: str, value: Any) -> None:
     hits = [m for m in _modules() if name in vars(m)]
-    assert hits, f"{name} not found in order_api or fp28.*"
+    assert hits, f"{name} not found in order_api, core.* or legacy_fp28.*"
     for m in hits:
         monkeypatch.setattr(m, name, value)
 

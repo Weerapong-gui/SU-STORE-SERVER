@@ -241,7 +241,7 @@ def test_receipt_http_flow(receipt_server):
     assert _call(receipt_server, "POST", cancel, {"reason": ""}, GLOBAL_ADMIN)[0] == 400
     status, body = _call(receipt_server, "POST", cancel, {"reason": "แก้ชื่อ"}, GLOBAL_ADMIN)
     assert status == 200 and json.loads(body)["cancelReason"] == "แก้ชื่อ"
-    from fp28.database import open_db
+    from core.database import open_db
     with open_db() as conn:
         events = [row[0] for row in conn.execute(
             "SELECT event FROM order_audit_log WHERE order_code = ? AND event LIKE 'v2_receipt_%' ORDER BY id",
@@ -277,7 +277,7 @@ def test_me_reports_superadmin(receipt_server):
     staff = _staff(receipt_server)
     assert json.loads(_call(receipt_server, "GET", "/v2/admin/me", headers=staff)[1])["isSuperadmin"] is False
     assert json.loads(_call(receipt_server, "GET", "/v2/admin/me", headers=GLOBAL_ADMIN)[1])["isSuperadmin"] is True
-    from fp28.database import open_db
+    from core.database import open_db
     with open_db() as conn:
         conn.execute("UPDATE admin_users SET is_superadmin = 1 WHERE username = 'staff1'")
     assert json.loads(_call(receipt_server, "GET", "/v2/admin/me", headers=staff)[1])["isSuperadmin"] is True
@@ -285,7 +285,7 @@ def test_me_reports_superadmin(receipt_server):
 
 
 def test_template_v2_has_no_baked_payee():
-    body = (Path(__file__).parents[1] / "templates/receipt_template_v2.svg").read_text()
+    body = (Path(__file__).parents[1] / "store/templates/receipt_template_v2.svg").read_text()
     assert body.count("ผู้รับเงิน") == 2
     assert "บัลลังก์" not in body
     assert 'href="#laizen-sig"' not in body

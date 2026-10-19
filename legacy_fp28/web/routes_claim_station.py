@@ -9,17 +9,18 @@ from http import HTTPStatus
 from typing import TYPE_CHECKING
 from urllib.parse import urlparse
 
-from .. import config
-from ..auth import compute_claim_token, compute_qr_token
-from ..database import cache_get, cache_invalidate, cache_set, log_audit, open_db
+from core import config
+from core.auth import compute_claim_token, compute_qr_token
+from core.database import cache_get, cache_invalidate, cache_set, log_audit, open_db
+from core.slips import resolve_stored_slip_path
+from core.timeutil import TZ_BANGKOK, now_iso
+
 from ..display import enqueue_display2
 from ..orders import fetch_order_by_code, mark_khantok_station_claimed, serialize_order
 from ..pages import CLAIM_STATION_HTML
-from ..slips import resolve_stored_slip_path
-from ..timeutil import TZ_BANGKOK, now_iso
 
 if TYPE_CHECKING:
-    from .handler import OrderRequestHandler
+    from core.handler import OrderRequestHandler
 
 def handle_get_claim_station(h: OrderRequestHandler, path: str, match: re.Match[str] | None) -> None:
     """GET /claim-station"""

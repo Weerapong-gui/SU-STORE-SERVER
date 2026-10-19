@@ -20,7 +20,8 @@ _tmp_for_import = TemporaryDirectory()
 os.environ.setdefault("ORDER_API_SLIDES_DIR", str(Path(_tmp_for_import.name) / "slides"))
 os.environ.setdefault("ORDER_API_ASSETS_DIR", str(Path(_tmp_for_import.name) / "assets"))
 
-from fp28 import config, database, display, orders, stats  # noqa: E402
+from core import config, database  # noqa: E402
+from legacy_fp28 import display, orders, stats  # noqa: E402
 
 
 @pytest.fixture()

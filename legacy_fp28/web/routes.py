@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 from . import routes_admin, routes_claim_station, routes_display, routes_public
 
 if TYPE_CHECKING:
-    from .handler import OrderRequestHandler
+    from core.handler import OrderRequestHandler
 
 
 @dataclass(frozen=True)

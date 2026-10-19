@@ -14,13 +14,13 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
 
+from legacy_fp28.web.routes import ROUTES
 from store import api as store_api
 
-from .. import config
-from ..database import open_db
-from ..slips import persist_slip_file, sanitize_file_name
-from ..timeutil import TZ_BANGKOK, now_iso
-from .routes import ROUTES
+from . import config
+from .database import open_db
+from .slips import persist_slip_file, sanitize_file_name
+from .timeutil import TZ_BANGKOK, now_iso
 
 
 class OrderRequestHandler(BaseHTTPRequestHandler):

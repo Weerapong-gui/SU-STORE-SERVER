@@ -6,9 +6,9 @@ import sqlite3
 from datetime import date, datetime
 from typing import Any
 
-from . import config
-from .config import BYPASS_TOKEN
-from .timeutil import TZ_BANGKOK, now_iso
+from core import config
+from core.config import BYPASS_TOKEN
+from core.timeutil import TZ_BANGKOK, now_iso
 
 
 def get_schedule_status(schedule_enabled: bool, warning_message: str) -> dict[str, Any]:

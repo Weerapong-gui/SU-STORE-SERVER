@@ -16,7 +16,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 # Stub OCR so order_api imports without cv2/Tesseract present.
 sys.modules["ocr"] = MagicMock()
 
-from fp28 import config, khantok, orders  # noqa: E402
+from core import config  # noqa: E402
+from legacy_fp28 import khantok, orders  # noqa: E402
 
 
 def _mem_db() -> sqlite3.Connection:

@@ -6,8 +6,8 @@ import urllib.error
 import urllib.request
 from typing import Any
 
-from .config import GOOGLE_SHEETS_WEBHOOK_TOKEN, GOOGLE_SHEETS_WEBHOOK_URL
-from .timeutil import now_iso
+from core.config import GOOGLE_SHEETS_WEBHOOK_TOKEN, GOOGLE_SHEETS_WEBHOOK_URL
+from core.timeutil import now_iso
 
 
 def create_sheet_row_payload(order: dict[str, Any], event: str) -> dict[str, Any]:

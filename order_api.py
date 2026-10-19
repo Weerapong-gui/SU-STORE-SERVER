@@ -5,10 +5,10 @@ import os
 import threading
 from http.server import ThreadingHTTPServer
 
-from fp28.backups import run_scheduled_backup
-from fp28.config import HOST, PORT
-from fp28.database import ensure_db
-from fp28.web.handler import OrderRequestHandler
+from core.config import HOST, PORT
+from core.database import ensure_db
+from core.handler import OrderRequestHandler
+from legacy_fp28.backups import run_scheduled_backup
 
 
 class _ReusePortHTTPServer(ThreadingHTTPServer):

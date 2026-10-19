@@ -4,9 +4,9 @@ from __future__ import annotations
 import sqlite3
 from datetime import datetime
 
-from . import config
-from .config import KHANTOK_STUDENT_CODE_PREFIX
-from .timeutil import TZ_BANGKOK, now_iso, parse_stored_datetime
+from core import config
+from core.config import KHANTOK_STUDENT_CODE_PREFIX
+from core.timeutil import TZ_BANGKOK, now_iso, parse_stored_datetime
 
 
 def khantok_claim_warning(received_at: str | None, status: str | None = None,

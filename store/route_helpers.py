@@ -4,7 +4,7 @@ from __future__ import annotations
 from http import HTTPStatus
 from typing import Any
 
-from fp28.database import open_db
+from core.database import open_db
 
 from .common import StoreError
 

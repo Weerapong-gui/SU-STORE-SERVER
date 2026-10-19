@@ -10,8 +10,8 @@ import threading
 import time
 from typing import Any
 
-from . import config
-from .database import open_db
+from core import config
+from core.database import open_db
 
 
 def create_orders_summary(connection: sqlite3.Connection, round_filter: int = 0) -> dict[str, int]:

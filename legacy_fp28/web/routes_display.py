@@ -10,15 +10,16 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 from urllib.parse import urlparse
 
-from .. import config
-from ..database import log_audit, open_db
+from core import config
+from core.database import log_audit, open_db
+from core.timeutil import now_iso
+
 from ..display import display_state_get, display_state_set, display_state_users
 from ..pages import DISPLAY2_HTML, DISPLAY3_HTML, DISPLAY_HTML, FONT_PATH, TEMPLATES_DIR
 from ..stats import create_orders_summary_cached
-from ..timeutil import now_iso
 
 if TYPE_CHECKING:
-    from .handler import OrderRequestHandler
+    from core.handler import OrderRequestHandler
 
 def handle_get_display1(h: OrderRequestHandler, path: str, match: re.Match[str] | None) -> None:
     """GET /display1"""

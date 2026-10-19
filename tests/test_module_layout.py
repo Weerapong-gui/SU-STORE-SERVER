@@ -1,7 +1,7 @@
 """Guards for how server modules share settings.
 
 Settings that tests (and only tests) swap at runtime must be read as `config.NAME` /
-`slips.trigger_ocr_async`. A `from fp28.config import DB_PATH` would copy the value at
+`slips.trigger_ocr_async`. A `from core.config import DB_PATH` would copy the value at
 import time, so swapping it would silently not reach that module.
 """
 import ast
@@ -16,7 +16,7 @@ SWAPPABLE = {
 
 
 def _sources() -> list[Path]:
-    return [SERVER / "order_api.py", *sorted((SERVER / "fp28").rglob("*.py")), *sorted((SERVER / "store").glob("*.py"))]
+    return [SERVER / "order_api.py", *sorted((SERVER / "core").rglob("*.py")), *sorted((SERVER / "legacy_fp28").rglob("*.py")), *sorted((SERVER / "store").glob("*.py"))]
 
 
 def test_swappable_settings_are_never_imported_by_name():

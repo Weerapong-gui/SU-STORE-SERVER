@@ -13,7 +13,8 @@ from unittest.mock import MagicMock
 
 sys.modules["ocr"] = MagicMock()
 
-from fp28 import config, khantok, pages, site, stats, timeutil  # noqa: E402
+from core import config, timeutil  # noqa: E402
+from legacy_fp28 import khantok, pages, site, stats  # noqa: E402
 
 
 class TestGetScheduleStatus:

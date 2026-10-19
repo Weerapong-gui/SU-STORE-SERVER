@@ -7,7 +7,8 @@ from typing import ClassVar
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from fp28 import config, display
+from core import config
+from legacy_fp28 import display
 
 
 def _make_conn() -> sqlite3.Connection:

@@ -18,11 +18,11 @@ from http import HTTPStatus
 from typing import Any
 from urllib.parse import parse_qs, urlparse
 
-from fp28 import config, slips
-from fp28.auth import compute_claim_token
-from fp28.database import log_audit, open_db
-from fp28.products import save_product_image_file
-from fp28.slips import delete_local_slip_file, resolve_stored_slip_path
+from core import config, slips
+from core.auth import compute_claim_token
+from core.database import log_audit, open_db
+from core.product_images import save_product_image_file
+from core.slips import delete_local_slip_file, resolve_stored_slip_path
 
 from . import categories, dashboard, db, home, receipt_routes
 from . import meta as store_meta

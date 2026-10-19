@@ -11,9 +11,13 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 from urllib.parse import parse_qs, urlparse
 
-from .. import config, slips, visitors
-from ..config import ORDER_ID_PATTERN
-from ..database import log_audit, open_db
+from core import config, slips
+from core.config import ORDER_ID_PATTERN
+from core.database import log_audit, open_db
+from core.slips import delete_local_slip_file, materialize_slip_payload
+from core.timeutil import now_iso
+
+from .. import visitors
 from ..orders import (
     create_order,
     fetch_order_by_code,
@@ -27,14 +31,12 @@ from ..pages import ORDER_VIEW_HTML
 from ..products import get_all_products
 from ..sheets import sync_order_to_google_sheets
 from ..site import get_schedule_status, get_site_settings
-from ..slips import delete_local_slip_file, materialize_slip_payload
-from ..timeutil import now_iso
 from . import state
 
 if TYPE_CHECKING:
-    from .handler import OrderRequestHandler
+    from core.handler import OrderRequestHandler
 
-SERVER_DIR = Path(__file__).resolve().parents[2]  # server/
+LEGACY_DIR = Path(__file__).resolve().parents[1]  # legacy_fp28/
 
 
 def handle_get_health(h: OrderRequestHandler, path: str, match: re.Match[str] | None) -> None:
@@ -69,7 +71,7 @@ def handle_get_docs(h: OrderRequestHandler, path: str, match: re.Match[str] | No
 
 def handle_get_openapi_yaml(h: OrderRequestHandler, path: str, match: re.Match[str] | None) -> None:
     """GET /openapi.yaml"""
-    spec_path = SERVER_DIR / "openapi.yaml"
+    spec_path = LEGACY_DIR / "openapi.yaml"
     try:
         content = spec_path.read_bytes()
         h.send_response(HTTPStatus.OK)

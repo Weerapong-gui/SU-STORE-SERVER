@@ -7,14 +7,15 @@ import sqlite3
 from http import HTTPStatus
 from typing import Any
 
-from .auth import compute_qr_token, create_order_access_token
-from .config import DEFAULT_PRODUCTS, ORDER_PREFIX, PAYMENT_STATUS_BY_ORDER_STATUS
-from .database import log_audit, open_db
+from core.auth import compute_qr_token, create_order_access_token
+from core.config import DEFAULT_PRODUCTS, ORDER_PREFIX, PAYMENT_STATUS_BY_ORDER_STATUS
+from core.database import log_audit, open_db
+from core.slips import delete_local_slip_file, resolve_stored_slip_path
+from core.timeutil import now_iso
+
 from .display import enqueue_display2_khantok
 from .khantok import khantok_claim_warning, reserve_khantok_ticket
 from .site import get_current_phase
-from .slips import delete_local_slip_file, resolve_stored_slip_path
-from .timeutil import now_iso
 
 
 def mark_khantok_station_claimed(

@@ -3,8 +3,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-# server/templates/, next to this package
-TEMPLATES_DIR = Path(__file__).resolve().parent.parent / "templates"
+# legacy_fp28/templates/
+TEMPLATES_DIR = Path(__file__).resolve().parent / "templates"
 
 
 ADMIN_HTML = (TEMPLATES_DIR / "admin.html").read_text(encoding="utf-8")

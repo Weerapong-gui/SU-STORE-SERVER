@@ -24,7 +24,7 @@ from core.database import log_audit, open_db
 from core.product_images import save_product_image_file
 from core.slips import delete_local_slip_file, resolve_stored_slip_path
 
-from . import categories, dashboard, db, home, receipt_routes
+from . import categories, dashboard, db, home, receipt_routes, staff_routes
 from . import meta as store_meta
 from .route_helpers import admin_user, content_length, is_admin, is_superadmin, json_body
 
@@ -137,6 +137,9 @@ def _route(handler: Any, method: str, path: str, query: dict[str, str]) -> None:
         return send(HTTPStatus.OK, {"username": admin_user(handler), "isSuperadmin": is_superadmin(handler)})
 
     if receipt_routes.route(handler, method, path):
+        return None
+
+    if staff_routes.route(handler, method, path):
         return None
 
     if method == "GET" and path == "/v2/admin/dashboard":

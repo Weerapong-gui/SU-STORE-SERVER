@@ -11,7 +11,7 @@ from http import HTTPStatus
 from typing import TYPE_CHECKING
 from urllib.parse import urlparse
 
-from core import slips
+from core import slips, visitors
 from core.auth import compute_claim_token, compute_super_token
 from core.config import ORDER_STATUSES
 from core.database import cache_invalidate, log_audit, open_db
@@ -19,7 +19,6 @@ from core.product_images import save_product_image_file
 from core.slips import delete_local_slip_file, resolve_stored_slip_path
 from core.timeutil import TZ_BANGKOK, now_iso
 
-from .. import visitors
 from ..backups import create_backup, delete_backup, get_backup, list_backups
 from ..orders import fetch_order_by_code, list_orders, serialize_order, update_order_fields, update_order_status
 from ..pages import ADMIN_HTML, RECEIPT_SVG

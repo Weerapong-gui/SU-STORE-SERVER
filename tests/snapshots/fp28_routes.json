@@ -1231,7 +1231,7 @@
     "scheduleClosed": false,
     "scheduleEnabled": false,
     "scheduleWarning": false,
-    "scheduleWarningMessage": "เว็บกำลังจะปิด กรุณาทำรายการให้เสร็จก่อนเวลา 22:59",
+    "scheduleWarningMessage": "",
     "siteClosed": false
    }
   },
@@ -1245,7 +1245,7 @@
     "scheduleClosed": false,
     "scheduleEnabled": false,
     "scheduleWarning": false,
-    "scheduleWarningMessage": "เว็บกำลังจะปิด กรุณาทำรายการให้เสร็จก่อนเวลา 22:59",
+    "scheduleWarningMessage": "",
     "siteClosed": false
    }
   },
@@ -1259,7 +1259,7 @@
     "scheduleClosed": false,
     "scheduleEnabled": false,
     "scheduleWarning": false,
-    "scheduleWarningMessage": "เว็บกำลังจะปิด กรุณาทำรายการให้เสร็จก่อนเวลา 22:59",
+    "scheduleWarningMessage": "",
     "siteClosed": false
    }
   },
@@ -1273,7 +1273,7 @@
     "scheduleClosed": false,
     "scheduleEnabled": false,
     "scheduleWarning": false,
-    "scheduleWarningMessage": "เว็บกำลังจะปิด กรุณาทำรายการให้เสร็จก่อนเวลา 22:59",
+    "scheduleWarningMessage": "",
     "siteClosed": false
    }
   },
@@ -3800,7 +3800,7 @@
     "scheduleClosed": false,
     "scheduleEnabled": false,
     "scheduleWarning": false,
-    "scheduleWarningMessage": "เว็บกำลังจะปิด กรุณาทำรายการให้เสร็จก่อนเวลา 22:59",
+    "scheduleWarningMessage": "",
     "siteClosed": false
    }
   },
@@ -3814,7 +3814,7 @@
     "scheduleClosed": false,
     "scheduleEnabled": false,
     "scheduleWarning": false,
-    "scheduleWarningMessage": "เว็บกำลังจะปิด กรุณาทำรายการให้เสร็จก่อนเวลา 22:59",
+    "scheduleWarningMessage": "",
     "siteClosed": false
    }
   },

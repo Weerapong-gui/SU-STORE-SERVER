@@ -25,7 +25,6 @@ class Route:
 
 ROUTES: dict[str, list[Route]] = {
     "GET": [
-        Route("GET", "/health", routes_public.handle_get_health),
         Route("GET", "/", routes_public.handle_get_root),
         Route("GET", "/admin/users", routes_admin.handle_get_admin_users),
         Route("GET", "/admin", routes_admin.handle_get_admin),
@@ -61,7 +60,6 @@ ROUTES: dict[str, list[Route]] = {
         Route("GET", r"/admin/orders/([A-Z0-9-]+)/slip", routes_admin.handle_get_admin_orders_by_id_slip, regex=True),
         Route("GET", "/products", routes_public.handle_get_products),
         Route("GET", "/site-settings", routes_public.handle_get_site_settings),
-        Route("GET", "/site-status", routes_public.handle_get_site_status),
         Route("GET", "/admin/orders/export.csv", routes_admin.handle_get_admin_orders_export_csv),
         Route("GET", "/admin/product-breakdown", routes_admin.handle_get_admin_product_breakdown),
         Route("GET", "/admin/analytics", routes_admin.handle_get_admin_analytics),
@@ -70,7 +68,6 @@ ROUTES: dict[str, list[Route]] = {
         Route("GET", "/admin/site-settings", routes_admin.handle_get_admin_site_settings),
         Route("GET", "/admin/backups", routes_admin.handle_get_admin_backups),
         Route("GET", r"/admin/backups/(\d+)", routes_admin.handle_get_admin_backups_by_id, regex=True),
-        Route("GET", r"/product-images/([^/]+)", routes_public.handle_get_product_images_by_id, regex=True),
         Route("GET", r"/orders/([A-Z0-9-]+)", routes_public.handle_get_orders_by_id, regex=True),
     ],
     "POST": [

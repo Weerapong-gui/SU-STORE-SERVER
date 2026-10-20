@@ -4,20 +4,17 @@ from __future__ import annotations
 import json
 import re
 import sqlite3
-import time
-from datetime import datetime, timedelta, timezone
 from http import HTTPStatus
 from pathlib import Path
 from typing import TYPE_CHECKING
 from urllib.parse import parse_qs, urlparse
 
-from core import config, slips
+from core import slips
 from core.config import ORDER_ID_PATTERN
 from core.database import log_audit, open_db
 from core.slips import delete_local_slip_file, materialize_slip_payload
 from core.timeutil import now_iso
 
-from .. import visitors
 from ..orders import (
     create_order,
     fetch_order_by_code,
@@ -30,19 +27,12 @@ from ..orders import (
 from ..pages import ORDER_VIEW_HTML
 from ..products import get_all_products
 from ..sheets import sync_order_to_google_sheets
-from ..site import get_schedule_status, get_site_settings
-from . import state
+from ..site import get_site_settings
 
 if TYPE_CHECKING:
     from core.handler import OrderRequestHandler
 
 LEGACY_DIR = Path(__file__).resolve().parents[1]  # legacy_fp28/
-
-
-def handle_get_health(h: OrderRequestHandler, path: str, match: re.Match[str] | None) -> None:
-    """GET /health"""
-    h.send_json(HTTPStatus.OK, {"status": "ok"})
-    return
 
 
 def handle_get_root(h: OrderRequestHandler, path: str, match: re.Match[str] | None) -> None:
@@ -158,66 +148,6 @@ def handle_get_site_settings(h: OrderRequestHandler, path: str, match: re.Match[
         data = get_site_settings(connection)
         data.pop("bypassToken", None)
         h.send_json(HTTPStatus.OK, data)
-    return
-
-
-def handle_get_site_status(h: OrderRequestHandler, path: str, match: re.Match[str] | None) -> None:
-    """GET /site-status"""
-    query = parse_qs(urlparse(h.path).query)
-    key = visitors.visitor_key((query.get("vid") or [""])[0], (query.get("ip") or [""])[0])
-    if key:
-        visitors.record_visit(key)
-    active_count = visitors.active_count()
-    with open_db() as connection:
-        rows = connection.execute(
-            "SELECT key, value FROM site_settings WHERE key IN ('site_closed','schedule_enabled','schedule_warning_message','be_right_back_dates','be_right_back_active')"
-        ).fetchall()
-        s = {r["key"]: r["value"] for r in rows}
-        site_closed = s.get("site_closed", "0") == "1"
-        schedule_enabled = s.get("schedule_enabled", "0") == "1"
-        warning_message = s.get("schedule_warning_message", "เว็บกำลังจะปิด กรุณาทำรายการให้เสร็จก่อนเวลา 22:59")
-        be_right_back_dates_str = s.get("be_right_back_dates", "2026-05-24,2026-05-31,2026-06-07")
-        be_right_back_dates = [d.strip() for d in be_right_back_dates_str.split(",") if d.strip()]
-        be_right_back_active = s.get("be_right_back_active", "0") == "1"
-        _TZ_BKK = timezone(timedelta(hours=7))
-        today_bkk = datetime.now(_TZ_BKK).strftime("%Y-%m-%d")
-        be_right_back = be_right_back_active or (today_bkk in be_right_back_dates)
-    sched = get_schedule_status(schedule_enabled, warning_message)
-    with state.lock:
-        test_warn = time.time() < state.test_warning_until
-    h.send_json(HTTPStatus.OK, {
-        "siteClosed": site_closed,
-        "scheduleEnabled": schedule_enabled,
-        "scheduleClosed": sched["scheduleClosed"],
-        "scheduleWarning": sched["scheduleWarning"] or test_warn,
-        "scheduleWarningMessage": sched["scheduleWarningMessage"],
-        "activeVisitors": active_count,
-        "beRightBack": be_right_back,
-    })
-    return
-
-
-def handle_get_product_images_by_id(h: OrderRequestHandler, path: str, match: re.Match[str] | None) -> None:
-    """GET /product-images/([^/]+)"""
-    raw_filename = match.group(1)
-    safe_filename = re.sub(r"[^a-zA-Z0-9._-]", "", raw_filename)
-    if not safe_filename or safe_filename != raw_filename:
-        h.send_json(HTTPStatus.BAD_REQUEST, {"message": "invalid filename"})
-        return
-    image_path = config.PRODUCT_IMAGES_DIR / safe_filename
-    if not image_path.exists():
-        h.send_json(HTTPStatus.NOT_FOUND, {"message": "image not found"})
-        return
-    suffix = Path(safe_filename).suffix.lower()
-    mime_map = {".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png", ".webp": "image/webp"}
-    mime = mime_map.get(suffix, "image/jpeg")
-    content = image_path.read_bytes()
-    h.send_response(HTTPStatus.OK)
-    h.send_header("Content-Type", mime)
-    h.send_header("Content-Length", str(len(content)))
-    h.send_header("Cache-Control", "public, max-age=86400")
-    h.end_headers()
-    h.wfile.write(content)
     return
 
 

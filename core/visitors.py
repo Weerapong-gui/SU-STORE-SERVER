@@ -49,5 +49,5 @@ def active_count(now: float | None = None) -> int:
 
 def _drop_expired(now: float) -> None:
     cutoff = now - ACTIVE_SECONDS
-    for key in [k for k, seen in _last_seen.items() if seen < cutoff]:
+    for key in [key for key, seen in _last_seen.items() if seen < cutoff]:
         del _last_seen[key]

@@ -822,10 +822,14 @@ SETTING_DEFAULTS: dict[str, str] = {
 }
 
 
+def is_site_closed(connection: sqlite3.Connection) -> bool:
+    closed = connection.execute("SELECT value FROM site_settings WHERE key = 'site_closed'").fetchone()
+    return bool(closed and closed[0] == "1")
+
+
 def get_settings(connection: sqlite3.Connection) -> dict[str, Any]:
     stored = {r[0]: r[1] for r in connection.execute("SELECT key, value FROM store_settings")}
     values = {k: stored.get(k, v) for k, v in SETTING_DEFAULTS.items()}
-    closed = connection.execute("SELECT value FROM site_settings WHERE key = 'site_closed'").fetchone()
     return {
         "payment": {
             "bankName": values["payment_bank_name"],
@@ -833,7 +837,7 @@ def get_settings(connection: sqlite3.Connection) -> dict[str, Any]:
             "accountName": values["payment_account_name"],
         },
         "announcement": values["announcement"],
-        "siteClosed": bool(closed and closed[0] == "1"),
+        "siteClosed": is_site_closed(connection),
     }
 
 

@@ -17,7 +17,7 @@ from urllib.parse import urlparse
 from legacy_fp28.web.routes import ROUTES
 from store import api as store_api
 
-from . import config
+from . import config, public_routes
 from .database import open_db
 from .slips import persist_slip_file, sanitize_file_name
 from .timeutil import TZ_BANGKOK, now_iso
@@ -191,6 +191,8 @@ class OrderRequestHandler(BaseHTTPRequestHandler):
         path = urlparse(self.path).path
         if path.startswith("/v2/"):
             store_api.handle(self, method)
+            return
+        if public_routes.route(self, method, path):
             return
         for route in ROUTES[method]:
             match = route.match(path)

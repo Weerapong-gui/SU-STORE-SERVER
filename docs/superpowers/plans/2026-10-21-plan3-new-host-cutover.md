@@ -173,8 +173,8 @@
   - env `TUNNEL_TOKEN: ${TUNNEL_TOKEN:?}`, network `su-store-net`, restart/logging ตาม Global Constraints
   - healthcheck: ถ้า image รองรับ `cloudflared tunnel ready` (ตรวจด้วย `--help` ของเวอร์ชันนี้) ให้ใช้ `["CMD", "cloudflared", "tunnel", "--metrics", "127.0.0.1:2000", "ready"]` ถ้าไม่รองรับให้คอมเมนต์ว่า image เป็น distroless ไม่มี healthcheck
   - เปิด PR แล้ว merge (deploy job deploy แค่ `su-store-api` ส่วน cloudflared เปิดเองใน Step 4)
-- [ ] **Step 2 [เจ้าของงาน]:** ใน Cloudflare Zero Trust → Networks → Tunnels สร้าง tunnel `su-store-v2` แบบ Cloudflared แล้วคัดลอก token มาใส่ `TUNNEL_TOKEN` ใน `backend/.env`
-- [ ] **Step 3 [เจ้าของงาน]:** ใน tunnel `su-store-v2` เพิ่ม public hostname `next.sumfu.store` → `http://su-store-web:3000` · ใน Zero Trust → Access → Applications สร้าง self-hosted app ครอบ `next.sumfu.store` และ policy Allow เฉพาะอีเมลทีม (One-time PIN)
+- [ ] **Step 2 [เจ้าของงาน]:** ใน Cloudflare Zero Trust → Networks → Tunnels สร้าง tunnel `su-store-r` แบบ Cloudflared แล้วคัดลอก token มาใส่ `TUNNEL_TOKEN` ใน `backend/.env`
+- [ ] **Step 3 [เจ้าของงาน]:** ใน tunnel `su-store-r` เพิ่ม public hostname `next.sumfu.store` → `http://su-store-web:3000` · ใน Zero Trust → Access → Applications สร้าง self-hosted app ครอบ `next.sumfu.store` และ policy Allow เฉพาะอีเมลทีม (One-time PIN)
 - [ ] **Step 4:** `docker compose -f /srv/su-store/backend/compose.yml --env-file /srv/su-store/backend/.env up -d su-store-cloudflared` แล้วดูว่า tunnel ขึ้น Healthy ใน dashboard · เปิด `https://next.sumfu.store` จาก browser ที่ไม่ได้ login ต้องเจอหน้า Access
 
 ### Task 6: backup ไปเครื่องเก่า
@@ -220,8 +220,8 @@
   - **ถ้า exit ไม่เป็น 0:** ตั้ง `site_closed=0` ที่เครื่องเก่า แล้วจบคืนนี้ (ยังไม่มีอะไรเปลี่ยนสำหรับลูกค้า)
 - [ ] **Step 4:** ตรวจผ่าน `next.sumfu.store` ตาม checklist ของ Task 7 Step 4 อีกรอบ
 - [ ] **Step 5 [เจ้าของงาน]:** ใน Cloudflare
-  1. tunnel `su-store-v2` เพิ่ม public hostname `sumfu.store` และ `www.sumfu.store` → `http://su-store-web:3000` (DNS record เดิมที่ชี้ tunnel เก่าต้องเปลี่ยนให้ชี้ tunnel ใหม่ ซึ่ง dashboard จะถามให้ override)
-  2. tunnel เก่า (`cloudflared-store` บนเครื่องเก่า) เพิ่ม ingress `fp28.sumfu.store` → `http://localhost:3000` ใน config แล้วรัน `cloudflared tunnel route dns <tunnel> fp28.sumfu.store` และ restart service
+  1. tunnel `su-store-r` เพิ่ม public hostname `sumfu.store` และ `www.sumfu.store` → `http://su-store-web:3000` (DNS record เดิมที่ชี้ tunnel เก่าต้องเปลี่ยนให้ชี้ tunnel ใหม่ ซึ่ง dashboard จะถามให้ override)
+  2. tunnel เก่า `su-store` (connector `archlinux`) **ใช้ config จาก dashboard แล้ว** (ดู Execution notes) ให้เพิ่ม route `fp28.sumfu.store` → `http://127.0.0.1:3000` ใน dashboard ห้ามแก้ `config-store.yml` เพราะไฟล์นี้ไม่มีผลแล้ว
   3. Redirect Rule บน `fp28.sumfu.store` ตาม spec ข้อ 4.6
 - [ ] **Step 6:** เครื่องเก่า: เพิ่ม `STORE_V2_GONE=1` ใน `.env` แล้ว `./deploy.sh api` (commit `cutover/block-v2` ต้อง merge และ deploy ไว้ก่อนวันจริง ตาม Execution notes) ตรวจด้วย `curl` ว่า `/v2/products` ตอบ 410 จากนั้นตั้ง `site_closed=0` ที่เครื่องเก่าเพื่อเปิด `fp28.sumfu.store`
 - [ ] **Step 7:** เครื่องใหม่ เปิดร้านจากหลังร้านใหม่ (`site_closed=0`) แล้วสั่งซื้อจริงหนึ่งออเดอร์ผ่าน `https://sumfu.store` อัปสลิป จากนั้นยกเลิกในหลังร้าน · ตรวจว่า `fp28.sumfu.store/check-order/fp28` ค้นด้วยรหัสนักศึกษาได้ และ `admin.sumfu.xyz` ยังใช้ได้
@@ -256,4 +256,14 @@
   - **ผลเทส:** repo เดิมผ่าน 266 + 36
 - **Task 5:** tunnel เดิมของเครื่องเก่า (connector `archlinux`, route `www.sumfu.store`) **ชื่อ `su-store` อยู่แล้ว** ใน dashboard ชื่อจึงชนกับที่แผนตั้งไว้ tunnel ใหม่ของเครื่องใหม่จึงใช้ชื่อ **`su-store-v2`** · ห้ามแก้ route หรือ token ของ `su-store` จนกว่าจะถึง Task 8 Step 5
 - **Task 7 Step 2 (2026-10-21):** deploy ครั้งแรกสำเร็จทั้งสองฝั่ง (backend `31dc25e`, หน้าร้าน `931118c`) `su-store-web` เรียก `su-store-api` ผ่าน `su-store-net` ได้ · merge PR #4 แล้ว deploy อัตโนมัติก็ทำงาน · พบว่า deploy job คัดลอกแค่ `deploy-service.sh` ไม่ได้คัดลอกทั้ง `ops/` จึงแก้ใน PR #5
+- **2026-10-21 22:12–23:25 ร้านล่ม (`sumfu.store`, `www`) ระหว่างสร้าง tunnel ใหม่ใน dashboard:**
+  - **ลำดับเหตุการณ์:**
+    1. คำสั่งติดตั้ง cloudflared ที่ dashboard แสดงถูกรันบน Mac ทำให้ tunnel ใหม่ `su-store-r` มี connector อยู่บน Mac
+    2. route ที่ใส่เป็น `www` และ apex แทน `next` เมื่อเพิ่ม route ระบบจะย้าย DNS ของชื่อนั้นไปชี้ที่ tunnel ใหม่ และเมื่อลบ route DNS record ก็ถูกลบตามไปด้วย
+    3. มีการแก้ route ของ tunnel เดิม `su-store` ทำให้ tunnel นั้นเปลี่ยนไปใช้ config จาก dashboard และไม่อ่าน `~/.cloudflared/config-store.yml` อีก
+  - **วิธีแก้:** เพิ่ม route `sumfu.store` และ `www.sumfu.store` → `http://127.0.0.1:3000` ใน dashboard ของ `su-store` ตรวจ config ที่ใช้อยู่จริงได้ด้วย `journalctl -u cloudflared-store | grep "Updated to new configuration"` บนเครื่องเก่า
+  - **ผลต่อแผน:**
+    - tunnel ของเครื่องใหม่คือ `su-store-r` (ID `3722edce-…`) ซึ่งต้องมีแค่ `next.sumfu.store` จนถึงคืนจริง
+    - ต้องลบ connector บน Mac ออกก่อนเพิ่ม route ใดๆ
+    - ทุกขั้นใน dashboard ต้องเขียนชื่อ tunnel พร้อม hostname ของ connector และระบุว่าห้ามรันคำสั่งติดตั้งที่ dashboard แสดง
 

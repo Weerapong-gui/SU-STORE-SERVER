@@ -146,7 +146,7 @@
 
 - [ ] **Step 1:** สร้าง user และโฟลเดอร์
   - `sudo useradd --system --create-home --home-dir /var/lib/su-runner --shell /bin/bash su-runner && sudo usermod -aG docker su-runner`
-  - `sudo install -d -o su-runner -g su-runner -m 750 /srv/su-store /srv/su-store/{backend,frontend,data} /srv/su-store/data/{order-api,next-image-cache,incoming}`
+  - `sudo install -d -o su-runner -g su-runner -m 750 /srv/su-store /srv/su-store/{backend,frontend,data} /srv/su-store/data/{order-api,next-image-cache} /srv/su-store/data/order-api/incoming`
   - `sudo usermod -aG su-runner park` เพื่อให้เจ้าของงานอ่านได้
 - [ ] **Step 2:** `docker network create su-store-net` (ตรวจก่อนว่ายังไม่มี)
 - [ ] **Step 3:** สร้าง `.env` (`chmod 600`, owner `su-runner`)
@@ -154,7 +154,7 @@
   - `frontend/.env`: `BYPASS_TOKEN` (สุ่มใหม่), `ALWAYS_OPEN=0`, `STAGING_HOST=next.sumfu.store`, `SU_STORE_DATA_DIR=/srv/su-store/data`
   - เก็บค่าที่สุ่มไว้ใน skill `deploy` ของเจ้าของงานเท่านั้น
 - [ ] **Step 4: key จำกัดสิทธิ์** ใน `/var/lib/su-runner/.ssh/authorized_keys` ที่สร้างบนเครื่องเก่าแล้วคัด public key มา:
-  - `command="/usr/bin/rrsync -wo /srv/su-store/data/incoming",restrict <su-store-migrate.pub>`
+  - `command="/usr/bin/rrsync -wo /srv/su-store/data/order-api/incoming",restrict <su-store-migrate.pub>`
   - `command="/usr/bin/rrsync -ro /srv/su-store/data/order-api",restrict <su-store-backup-pull.pub>`
   - ลองจากเครื่องเก่าว่า `rsync` ไปยัง incoming ได้, อ่าน `backups/` ได้, เขียนนอก incoming ไม่ได้ และ `ssh` เปิด shell ไม่ได้
 - [ ] **Step 5: runner สองตัว** (หนึ่งตัวต่อ repo เพราะ repo อยู่ใต้ user ไม่ใช่ org)
@@ -197,7 +197,7 @@
   - ถัดไปรัน workflow เดียวกันของ `SU-STORE-REMASTER`
   - ทั้งสอง run ต้องเขียว และ `docker ps` ต้องเห็น `su-store-api`, `su-store-web`, `su-store-cloudflared` เป็น healthy
 - [ ] **Step 3: ซ้อมย้ายข้อมูล**
-  1. เครื่องเก่า: `NEW_HOST=<new-host> ops/migrate/export-old.sh ~/su-store-snapshot` (ใช้ scp วางสคริปต์ลงเครื่องเก่าก่อน)
+  1. เครื่องเก่า: `OLD_DATA_DIR=<old-data-dir>/order-api NEW_HOST=su-runner@<new-host> ops/migrate/export-old.sh ~/su-store-snapshot` (ใช้ scp วาง `ops/` ทั้งโฟลเดอร์ลงเครื่องเก่าก่อน)
   2. เครื่องใหม่: `docker stop su-store-api` → `ops/migrate/import-new.sh` → start ด้วย `deploy-service.sh backend <sha เดิม>` → `ops/migrate/verify.sh` ต้อง exit 0
   3. บันทึกเวลาที่แต่ละขั้นใช้ไว้ใน Execution notes เพื่อวางแผนคืนจริง
 - [ ] **Step 4: ตรวจผ่าน `next.sumfu.store`** (login Access ก่อน):
@@ -223,11 +223,11 @@
   1. tunnel `su-store` เพิ่ม public hostname `sumfu.store` และ `www.sumfu.store` → `http://su-store-web:3000` (DNS record เดิมที่ชี้ tunnel เก่าต้องเปลี่ยนให้ชี้ tunnel ใหม่ ซึ่ง dashboard จะถามให้ override)
   2. tunnel เก่า (`cloudflared-store` บนเครื่องเก่า) เพิ่ม ingress `fp28.sumfu.store` → `http://localhost:3000` ใน config แล้วรัน `cloudflared tunnel route dns <tunnel> fp28.sumfu.store` และ restart service
   3. Redirect Rule บน `fp28.sumfu.store` ตาม spec ข้อ 4.6
-- [ ] **Step 6:** repo เดิม: merge `cutover/block-v2` เข้า `main` แล้ว `./deploy.sh api` (ห้ามรวมงานที่ยังไม่ commit) ตรวจด้วย `curl` ผ่าน tunnel เก่าว่า `/v2/products` ตอบ 410 จากนั้นตั้ง `site_closed=0` ที่เครื่องเก่าเพื่อเปิด `fp28.sumfu.store`
+- [ ] **Step 6:** เครื่องเก่า: เพิ่ม `STORE_V2_GONE=1` ใน `.env` แล้ว `./deploy.sh api` (commit `cutover/block-v2` ต้อง merge และ deploy ไว้ก่อนวันจริง ตาม Execution notes) ตรวจด้วย `curl` ว่า `/v2/products` ตอบ 410 จากนั้นตั้ง `site_closed=0` ที่เครื่องเก่าเพื่อเปิด `fp28.sumfu.store`
 - [ ] **Step 7:** เครื่องใหม่ เปิดร้านจากหลังร้านใหม่ (`site_closed=0`) แล้วสั่งซื้อจริงหนึ่งออเดอร์ผ่าน `https://sumfu.store` อัปสลิป จากนั้นยกเลิกในหลังร้าน · ตรวจว่า `fp28.sumfu.store/check-order/fp28` ค้นด้วยรหัสนักศึกษาได้ และ `admin.sumfu.xyz` ยังใช้ได้
 - [ ] **Step 8 ถอยกลับ (ใช้ได้ถึงก่อน Step 7 เท่านั้น):**
   1. ใน Cloudflare ย้าย `sumfu.store`/`www` กลับไป tunnel เก่า
-  2. repo เดิม revert commit บล็อก `/v2` แล้ว `./deploy.sh api`
+  2. เครื่องเก่า: ลบ `STORE_V2_GONE=1` ออกจาก `.env` แล้ว `./deploy.sh api`
   3. ตั้ง `site_closed=0` ที่เครื่องเก่า
   - หลังเปิดร้านใหม่แล้ว จะถอยกลับต้องย้ายออเดอร์ใหม่ย้อนไปด้วย ซึ่งอยู่นอกขอบเขต (spec ข้อ 4.9)
 
@@ -244,4 +244,13 @@
 
 ## Execution notes
 
-(ผู้ลงมือบันทึกสิ่งที่ข้ามหรือเจอระหว่างทำไว้ตรงนี้)
+- **Task 1 (`82de8c0`):** งานทั้งหมดอยู่ใน `ops/backup.py` ที่รันใน `su-store-api` ผ่าน `docker exec -i ... python -` ส่วน `backup.sh` เป็นแค่ wrapper · เหตุผล: ไฟล์ใน `data/order-api` เป็นของ root ใน container ทำให้ `su-runner` บน host เขียน `LAST_OK` หรือลบไฟล์เก่าไม่ได้ · `backup.py --snapshot <target>` ใช้ร่วมกับ export
+- **Task 2 (`c45e0d0`):**
+  - `incoming/` อยู่ใต้ `data/order-api/` (ใน container คือ `/var/data/incoming`) แทน `data/incoming` เพื่อให้ `verify.sh` เทียบและเช็กสลิปด้วย Python ใน container ได้ (rrsync -wo ของ key migrate จึงชี้ไปที่ `data/order-api/incoming`)
+  - import ใช้ `import_files.py` ใน image แทน `cp -n` เพราะ coreutils ของ Debian trixie เปลี่ยนพฤติกรรม `-n`
+  - export ต้องตั้ง env `OLD_DATA_DIR`
+- **Task 3 (`a2bdf23` บน branch `cutover/block-v2` ของ repo `SU-STORE`):** เปลี่ยนจากบล็อก `/v2` ตลอด เป็นสวิตช์ `STORE_V2_GONE=1` (ปิดไว้เป็นค่าเริ่มต้น และเพิ่มใน `docker-compose.yml` แล้ว)
+  - **เหตุผล:** ถ้าบล็อกตลอด เทส HTTP `/v2` ของ repo เดิมจะพัง · ใช้สวิตช์แล้ว merge + deploy ไว้ก่อนวันจริงได้โดยไม่มีผลอะไร
+  - **คืนจริง:** เพิ่มบรรทัดใน `.env` แล้ว `./deploy.sh api`
+  - **ถอยกลับ:** ลบบรรทัดนั้นแล้ว deploy ใหม่ ไม่ต้อง revert
+  - **ผลเทส:** repo เดิมผ่าน 266 + 36

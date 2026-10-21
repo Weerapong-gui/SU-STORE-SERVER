@@ -13,22 +13,18 @@ from typing import Any
 
 from .categories import list_categories
 from .common import StoreError, clean_image_url, clean_text, now_iso
+from .contract import CONTRACT
 from .db import list_products
 
-# Keep block types in sync with src/components/admin/home/blocks.ts.
-HOME_BLOCK_TYPES = ("hero", "featured", "categories", "text", "imageText", "allProducts")
+HOME_BLOCK_TYPES = tuple(CONTRACT["homeBlockTypes"])
 DEFAULT_ACCENT = "#0071e3"
-# Corner roundness in percent of the original design: 0 = square, 100 = as designed.
-DEFAULT_RADIUS = 100
-# Storefront font ids; the families and Google Fonts URLs live in src/lib/theme/fonts.ts (keep in sync).
-HOME_FONTS = ("sarabun", "prompt", "kanit", "noto-sans-thai", "ibm-plex-sans-thai", "anuphan", "mitr",
-              "chakra-petch", "bai-jamjuree", "pridi")
+DEFAULT_RADIUS = CONTRACT["defaultRadius"]
+HOME_FONTS = tuple(CONTRACT["homeFonts"])
 DEFAULT_FONT = "sarabun"
-MAX_HOME_BLOCKS = 20
-MAX_HERO_SLIDES = 6
-MAX_FEATURED = 12
-# Must match MAX_HOME_CATEGORIES in src/components/admin/home/blocks.ts.
-MAX_HOME_CATEGORIES = 12
+MAX_HOME_BLOCKS = CONTRACT["maxHomeBlocks"]
+MAX_HERO_SLIDES = CONTRACT["maxHeroSlides"]
+MAX_FEATURED = CONTRACT["maxFeatured"]
+MAX_HOME_CATEGORIES = CONTRACT["maxHomeCategories"]
 
 # A hero slide with no image and no text renders the built-in bilingual store intro.
 DEFAULT_HOME: dict[str, Any] = {

@@ -26,6 +26,7 @@ from .common import as_int, unique_slug
 from .common import clean_text as clean_text
 from .common import now_iso as now_iso
 from .common import slugify as slugify
+from .contract import CONTRACT
 from .receipts import orders_with_receipt_warning
 
 ORDER_PREFIX = "SU"
@@ -60,8 +61,9 @@ PRODUCT_STATUSES: dict[str, str] = {
     "archived": "ปิดการขาย",
 }
 
-MAX_ITEMS_PER_ORDER = 20
-MAX_QTY_PER_ITEM = 50
+MAX_PRODUCT_IMAGES = CONTRACT["maxProductImages"]
+MAX_ITEMS_PER_ORDER = CONTRACT["maxItemsPerOrder"]
+MAX_QTY_PER_ITEM = CONTRACT["maxQtyPerItem"]
 _CHECKOUT_ID_RE = re.compile(r"[A-Za-z0-9-]{16,64}")
 
 
@@ -340,7 +342,7 @@ def _product_fields(payload: dict[str, Any]) -> dict[str, Any]:
         images = payload["images"]
         if not isinstance(images, list) or not all(isinstance(i, str) and i for i in images):
             raise StoreError(400, "images ต้องเป็นรายการ URL")
-        fields["images_json"] = json.dumps(images[:10], ensure_ascii=False)
+        fields["images_json"] = json.dumps(images[:MAX_PRODUCT_IMAGES], ensure_ascii=False)
     if "buyerFields" in payload:
         chosen = payload["buyerFields"]
         if not isinstance(chosen, list) or any(f not in OPTIONAL_FIELDS for f in chosen):
@@ -508,7 +510,7 @@ def replace_variants(connection: sqlite3.Connection, product_id: int, variants: 
 
 def add_product_image(connection: sqlite3.Connection, product_id: int, url: str) -> dict[str, Any]:
     product = get_product(connection, product_id, public=False)
-    images = (product["images"] + [url])[:10]
+    images = (product["images"] + [url])[:MAX_PRODUCT_IMAGES]
     _apply_product_fields(connection, product_id, {"images_json": json.dumps(images, ensure_ascii=False)})
     return get_product(connection, product_id, public=False)
 

@@ -7,15 +7,15 @@ from __future__ import annotations
 
 import re
 from http import HTTPStatus
-from pathlib import Path
 from typing import Any
 
 from core.database import log_audit, open_db
 
 from . import receipts
+from .contract import RECEIPT_TEMPLATE_PATH
 from .route_helpers import admin_user, json_body, require_superadmin
 
-RECEIPT_SVG_V2 = (Path(__file__).resolve().parent / "templates" / "receipt_template_v2.svg").read_bytes()
+RECEIPT_SVG_V2 = RECEIPT_TEMPLATE_PATH.read_bytes()
 
 _ORDER_RECEIPTS = re.compile(r"/v2/admin/orders/(SU\d{4}-\d{4,})/receipts?")
 _RECEIPT = re.compile(r"/v2/admin/receipts/(\d+)")

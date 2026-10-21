@@ -20,6 +20,7 @@ COPY server/order_api.py ./order_api.py
 COPY server/ocr.py ./ocr.py
 COPY server/core/ ./core/
 COPY server/store/ ./store/
+COPY server/contract/ ./contract/
 
 RUN mkdir -p /var/data/su-order-api/slips /var/data/easyocr-models
 

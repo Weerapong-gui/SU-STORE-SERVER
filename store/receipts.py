@@ -10,35 +10,13 @@ from datetime import UTC, datetime
 from typing import Any
 
 from .common import StoreError, clean_image_url, clean_text, now_iso
+from .contract import CONTRACT
 
-RECEIPT_ISSUABLE_STATUSES = ("paid", "ready", "completed")
-# Keep these SVG viewBox coordinates in sync with src/lib/receipt/layout.ts.
-DEFAULT_LAYOUT: dict[str, Any] = {
-    "rightCopyOffset": 421.19,
-    "fields": {
-        "date": {"x": 384, "y": 33, "size": 9.5, "anchor": "end"},
-        "receiptNo": {"x": 384, "y": 54.5, "size": 9.5, "anchor": "end"},
-        "customer": {"x": 247.5, "y": 93, "size": 8, "anchor": "start"},
-        "studentId": {"x": 247.5, "y": 112, "size": 8, "anchor": "start"},
-        "school": {"x": 247.5, "y": 131, "size": 8, "anchor": "start"},
-        "subtotal": {"x": 374, "y": 399, "size": 9, "anchor": "end"},
-        "total": {"x": 374, "y": 429, "size": 9, "anchor": "end"},
-        "words": {"x": 128, "y": 399, "size": 7, "anchor": "middle"},
-        "payeeName": {"x": 61, "y": 535, "size": 8, "anchor": "middle"},
-        "pageNo": {"x": 384, "y": 74, "size": 7.5, "anchor": "end"},
-    },
-    "signature": {"x": 30, "y": 500, "width": 62},
-    "table": {
-        "firstY": 197, "rowSpacing": 25, "size": 7.5, "bottomY": 385,
-        "cols": {
-            "no": {"x": 11, "width": 18, "anchor": "middle"},
-            "name": {"x": 40, "width": 210, "anchor": "start"},
-            "qty": {"x": 290, "width": 30, "anchor": "end"},
-            "price": {"x": 343, "width": 40, "anchor": "end"},
-            "amount": {"x": 384, "width": 45, "anchor": "end"},
-        },
-    },
-}
+RECEIPT_ISSUABLE_STATUSES = tuple(CONTRACT["receiptIssuableStatuses"])
+DEFAULT_LAYOUT: dict[str, Any] = CONTRACT["receiptDefaultLayout"]
+LAYOUT_MAX = CONTRACT["receiptLayoutMax"]
+FONT_SIZE_MIN = CONTRACT["receiptFontSizeMin"]
+FONT_SIZE_MAX = CONTRACT["receiptFontSizeMax"]
 DEFAULT_RECEIPT_SETTINGS: dict[str, Any] = {
     "payeeName": "", "signatureUrl": "", "prefix": "SU-R2569-", "layout": DEFAULT_LAYOUT,
 }
@@ -60,7 +38,7 @@ def _validate_layout(value: Any, template: Any = DEFAULT_LAYOUT, key: str = "lay
         if not isinstance(value, str) or value not in ("start", "middle", "end"):
             raise StoreError(400, "ตำแหน่งจัดแนวข้อความไม่ถูกต้อง")
     else:
-        minimum, maximum = (4, 30) if key == "size" else (0, 1000)
+        minimum, maximum = (FONT_SIZE_MIN, FONT_SIZE_MAX) if key == "size" else (0, LAYOUT_MAX)
         if (isinstance(value, bool) or not isinstance(value, (int, float))
                 or not minimum <= value <= maximum or not math.isfinite(value)):
             raise StoreError(400, "ค่าตำแหน่งหรือขนาดตัวอักษรใบเสร็จไม่ถูกต้อง")

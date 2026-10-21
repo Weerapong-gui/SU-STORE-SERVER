@@ -1,7 +1,6 @@
 """Frozen receipt snapshots and transactional store-wide numbering."""
 import copy
 import json
-import re
 import sqlite3
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
@@ -285,7 +284,7 @@ def test_me_reports_superadmin(receipt_server):
 
 
 def test_template_v2_has_no_baked_payee():
-    body = (Path(__file__).parents[1] / "store/templates/receipt_template_v2.svg").read_text()
+    body = (Path(__file__).parents[1] / "contract/receipt_template_v2.svg").read_text()
     assert body.count("ผู้รับเงิน") == 2
     assert "บัลลังก์" not in body
     assert 'href="#laizen-sig"' not in body
@@ -356,9 +355,3 @@ def test_stored_layout_missing_a_field_gets_defaults():
     assert settings["layout"] == receipts.DEFAULT_LAYOUT
 
 
-def test_default_layout_matches_typescript_copy():
-    source = (Path(__file__).parents[2] / "src/lib/receipt/layout.ts").read_text()
-    body = source[source.index("= {") + 2: source.rindex("};") + 1]
-    as_json = re.sub(r"([{,]\s*)([A-Za-z]+):", r'\1"\2":', body)
-    as_json = re.sub(r",(\s*[}\]])", r"\1", as_json)
-    assert json.loads(as_json) == receipts.DEFAULT_LAYOUT

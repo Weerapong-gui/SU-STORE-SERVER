@@ -2,9 +2,10 @@
 import json
 
 from .common import StoreError, as_int, clean_image_url, clean_text
+from .contract import CONTRACT
 
-MAX_DESIGN_IMAGES = 8
-MAX_CODE_LENGTH = 12
+MAX_DESIGN_IMAGES = CONTRACT["maxDesignImages"]
+MAX_CODE_LENGTH = CONTRACT["maxDesignCodeLength"]
 MAX_NAME_LENGTH = 80
 CODE_CHARACTERS = frozenset("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-")
 

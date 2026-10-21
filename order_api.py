@@ -2,13 +2,11 @@
 from __future__ import annotations
 
 import os
-import threading
 from http.server import ThreadingHTTPServer
 
 from core.config import HOST, PORT
 from core.database import ensure_db
 from core.handler import OrderRequestHandler
-from legacy_fp28.backups import run_scheduled_backup
 
 
 class _ReusePortHTTPServer(ThreadingHTTPServer):
@@ -38,11 +36,6 @@ if __name__ == "__main__":
         if pid == 0:
             is_primary = False
             break
-
-    # Only the primary process runs the scheduled backup thread — otherwise
-    # every worker would race to write the same daily snapshot.
-    if is_primary:
-        threading.Thread(target=run_scheduled_backup, daemon=True, name="scheduled-backup").start()
 
     server = _ReusePortHTTPServer((HOST, PORT), OrderRequestHandler)
     role = "primary" if is_primary else "worker"

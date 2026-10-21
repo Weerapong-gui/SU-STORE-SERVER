@@ -4,7 +4,6 @@ from __future__ import annotations
 import hmac
 import html
 import json
-import sqlite3
 from datetime import datetime
 from email.parser import BytesParser
 from email.policy import default
@@ -14,7 +13,6 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
 
-from legacy_fp28.web.routes import ROUTES
 from store import api as store_api
 
 from . import config, public_routes
@@ -31,15 +29,6 @@ class OrderRequestHandler(BaseHTTPRequestHandler):
         self.send_response(status)
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(response_body)))
-        self.end_headers()
-        self.wfile.write(response_body)
-
-    def send_html(self, status: int, body: str) -> None:
-        response_body = body.encode("utf-8")
-        self.send_response(status)
-        self.send_header("Content-Type", "text/html; charset=utf-8")
-        self.send_header("Content-Length", str(len(response_body)))
-        self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
         self.end_headers()
         self.wfile.write(response_body)
 
@@ -154,35 +143,6 @@ class OrderRequestHandler(BaseHTTPRequestHandler):
             ).fetchone()
         return row["username"] if row else None
 
-    def has_superadmin_authorization(self) -> bool:
-        incoming = self.headers.get("Authorization", "")
-        if not incoming.startswith("Superadmin "):
-            return False
-        token = incoming[11:]
-        with open_db() as conn:
-            row = conn.execute(
-                "SELECT 1 FROM admin_users WHERE super_token=? AND is_superadmin=1",
-                (token,),
-            ).fetchone()
-        return row is not None
-
-    def is_authorized_for_order(self, row: sqlite3.Row) -> bool:
-        if self.has_global_authorization():
-            return True
-        incoming = self.headers.get("X-Order-Token") or ""
-        expected = row["access_token"] or ""
-        return bool(expected) and hmac.compare_digest(incoming, expected)
-
-    def deny_unauthorized(self) -> bool:
-        self.send_json(HTTPStatus.UNAUTHORIZED, {"message": "unauthorized"})
-        return False
-
-    def require_admin_authorization(self) -> bool:
-        if self.has_global_authorization():
-            return True
-        self.deny_unauthorized()
-        return False
-
     def log_message(self, format: str, *args: Any) -> None:
         timestamp = datetime.now(TZ_BANGKOK).strftime("%Y-%m-%d %H:%M:%S")
         print(f"[{timestamp}] {self.client_address[0]} {format % args}")
@@ -194,11 +154,6 @@ class OrderRequestHandler(BaseHTTPRequestHandler):
             return
         if public_routes.route(self, method, path):
             return
-        for route in ROUTES[method]:
-            match = route.match(path)
-            if match:
-                route.handler(self, path, match if route.regex else None)
-                return
         self.send_json(HTTPStatus.NOT_FOUND, {"message": "not found"})
 
     def do_GET(self) -> None:

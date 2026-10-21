@@ -499,14 +499,15 @@ def test_ensure_db_leaves_v1_orders_untouched(tmp_path, monkeypatch):
     path = tmp_path / "orders.db"
     monkeypatch.setattr(config, "DB_PATH", path)
     monkeypatch.setattr(config, "SLIPS_DIR", tmp_path / "slips")
+    with sqlite3.connect(path) as conn:
+        conn.execute(
+            "CREATE TABLE orders (order_code TEXT, status TEXT, payment_status TEXT, created_at TEXT)"
+        )
     database.ensure_db()
     with sqlite3.connect(path) as conn:
         conn.execute(
-            "INSERT INTO orders (order_code, round_number, status, payment_status, created_at, updated_at, "
-            "product_slug, product_name, product_short_name, product_tagline, product_price, product_image, "
-            "product_category, size, quantity, total_amount, first_name, last_name, nickname, email, phone, "
-            "school, access_token) VALUES ('FP2800011', 1, 'paid', 'paid', 't', 't', 'single-shirt', 'n', 'n', "
-            "'t', 399, 'i', 'single', 'M', 1, 399, 'a', 'b', 'c', 'e', 'p', 's', 'tok')"
+            "INSERT INTO orders (order_code, status, payment_status, created_at) "
+            "VALUES ('FP2800011', 'paid', 'paid', 't')"
         )
     with sqlite3.connect(path) as conn:
         before = conn.execute("SELECT * FROM orders").fetchall()

@@ -8,7 +8,6 @@ ENV ORDER_API_HOST=0.0.0.0
 ENV ORDER_API_PORT=10000
 ENV ORDER_API_DB_PATH=/var/data/su-order-api/orders.db
 ENV ORDER_API_SLIPS_DIR=/var/data/su-order-api/slips
-ENV ORDER_API_SLIDES_DIR=/var/data/su-order-api/slides
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     tesseract-ocr tesseract-ocr-tha tesseract-ocr-eng \
@@ -20,7 +19,6 @@ RUN pip install --no-cache-dir pytesseract==0.3.13 Pillow==10.4.0 opencv-python-
 COPY server/order_api.py ./order_api.py
 COPY server/ocr.py ./ocr.py
 COPY server/core/ ./core/
-COPY server/legacy_fp28/ ./legacy_fp28/
 COPY server/store/ ./store/
 
 RUN mkdir -p /var/data/su-order-api/slips /var/data/easyocr-models

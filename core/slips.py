@@ -1,8 +1,6 @@
 """Payment slip files and the background OCR check."""
 from __future__ import annotations
 
-import base64
-import binascii
 import re
 import threading
 from datetime import UTC, datetime
@@ -91,49 +89,6 @@ def persist_slip_file(
         "uploadedAt": uploaded_at,
     }
     return normalized_slip, None
-
-
-def materialize_slip_payload(order_code: str, slip: dict[str, Any]) -> tuple[dict[str, Any] | None, str | None]:
-    file_content_base64 = slip.get("fileContentBase64")
-    if not isinstance(file_content_base64, str) or not file_content_base64.strip():
-        stored_name = slip.get("storedName")
-        stored_path = slip.get("storedPath")
-        if (not isinstance(stored_name, str) or not stored_name.strip()) and isinstance(stored_path, str) and stored_path.strip():
-            stored_name = Path(stored_path).name
-        if not isinstance(stored_name, str) or not stored_name.strip():
-            return None, "slip.storedName is required"
-        return {
-            "originalName": slip["originalName"],
-            "storedName": Path(stored_name).name,
-            "storedPath": str(resolve_stored_slip_path(stored_name, str(stored_path) if isinstance(stored_path, str) else None)),
-            "mimeType": slip["mimeType"],
-            "size": int(slip["size"]),
-            "uploadedAt": slip["uploadedAt"],
-        }, None
-
-    mime_type = slip.get("mimeType")
-    if not isinstance(mime_type, str) or mime_type not in ALLOWED_SLIP_TYPES:
-        return None, "unsupported slip mime type"
-
-    file_size = slip.get("size")
-    if not isinstance(file_size, int) or file_size < 1 or file_size > MAX_SLIP_SIZE_BYTES:
-        return None, "slip.size must be between 1 and 5242880"
-
-    try:
-        file_content = base64.b64decode(file_content_base64.encode("utf-8"), validate=True)
-    except (binascii.Error, ValueError):
-        return None, "slip.fileContentBase64 is invalid"
-
-    if len(file_content) != file_size:
-        return None, "slip.size does not match uploaded content"
-
-    return persist_slip_file(
-        order_code,
-        str(slip["originalName"]),
-        mime_type,
-        str(slip["uploadedAt"]),
-        file_content,
-    )
 
 
 def _run_ocr_for_slip(order_code: str, slip_path: str, expected_amount: float | None) -> None:

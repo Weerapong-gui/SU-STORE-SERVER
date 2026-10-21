@@ -1,4 +1,4 @@
-# cloudflared and backup services will be added in plan 3.
+# The daily backup runs from a systemd timer on the host (ops/systemd/), not as a service here.
 services:
   su-store-api:
     image: ghcr.io/weerapong-gui/su-store-server:${API_IMAGE_TAG:?}
@@ -29,6 +29,29 @@ services:
       timeout: 3s
       retries: 5
       start_period: 10s
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+
+  # Tunnel for sumfu.store (token-managed: hostnames are set in the Cloudflare dashboard).
+  # Not restarted by deploy-service.sh; start it once with `docker compose up -d su-store-cloudflared`.
+  su-store-cloudflared:
+    image: cloudflare/cloudflared:2026.9.3
+    container_name: su-store-cloudflared
+    restart: unless-stopped
+    command: tunnel --no-autoupdate --metrics 127.0.0.1:2000 run
+    environment:
+      TUNNEL_TOKEN: ${TUNNEL_TOKEN:-}
+    networks:
+      - su-store-net
+    healthcheck:
+      test: ["CMD", "cloudflared", "tunnel", "--metrics", "127.0.0.1:2000", "ready"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
     logging:
       driver: json-file
       options:

@@ -73,3 +73,19 @@ def test_missing_su_store_dir_exits_64(tmp_path: Path) -> None:
     result = _run(env)
     assert result.returncode == 64
     assert "[backup]" in result.stderr
+
+
+def test_snapshot_mode_writes_one_exact_copy(tmp_path: Path) -> None:
+    env, backups = _setup(tmp_path)
+    root = Path(env["FAKE_DATA_ROOT"])
+    target = root / "su-store-migrate" / "orders.db"
+    target.parent.mkdir()
+    target.write_text("stale snapshot")
+    result = subprocess.run(
+        ["docker", "exec", "-i", "su-store-api", "python", "-", "/var/data/su-order-api/orders.db",
+         "--snapshot", "/var/data/su-store-migrate/orders.db"],
+        stdin=(OPS / "backup.py").open(), env=env, text=True, capture_output=True, timeout=30)
+    assert result.returncode == 0, result.stderr
+    with sqlite3.connect(target) as conn:
+        assert conn.execute("SELECT COUNT(*) FROM store_orders").fetchone()[0] == 1
+    assert not backups.exists()

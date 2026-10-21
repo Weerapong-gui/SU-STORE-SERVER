@@ -16,13 +16,30 @@ with log.open("a") as handle:
 if args[:1] == ["inspect"]:
     print(os.environ.get("FAKE_DOCKER_RUNNING", "false"))
     sys.exit(0)
+root = os.environ["FAKE_DATA_ROOT"]
+if args[:1] == ["run"]:
+    # `run --rm [-v A:/var/data] [-e K=V] --entrypoint sh <image> -c <script>`: run the script
+    # locally with /var/data pointing at the fake data root.
+    env, rest, i = dict(os.environ), args[1:], 0
+    while rest[i].startswith("-"):
+        if rest[i] in ("-v", "-e", "--entrypoint"):
+            if rest[i] == "-e":
+                key, _, value = rest[i + 1].partition("=")
+                env[key] = value.replace("/var/data", root)
+            if rest[i] == "--entrypoint":
+                entrypoint = rest[i + 1]
+            i += 2
+        else:
+            i += 1
+    command = [a.replace("/var/data", root) for a in rest[i + 1:]]
+    entrypoint = sys.executable if entrypoint == "python" else entrypoint
+    sys.exit(subprocess.run([entrypoint, *command], env=env).returncode)
 if args[:1] != ["exec"]:
     sys.exit(0)
 rest = [a for a in args[1:] if a != "-i"][1:]  # drop -i and the container name
-root = os.environ["FAKE_DATA_ROOT"]
 mapped = [root + a[len("/var/data"):] if a.startswith("/var/data") else a for a in rest]
 mapped[0] = sys.executable if mapped[0] == "python" else mapped[0]
-sys.exit(subprocess.run(mapped, env={{**os.environ, "SU_FAKE_ROOT": root}}).returncode)
+sys.exit(subprocess.run(mapped).returncode)
 """
 
 

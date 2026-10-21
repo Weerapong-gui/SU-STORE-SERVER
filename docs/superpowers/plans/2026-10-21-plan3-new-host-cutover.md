@@ -173,8 +173,8 @@
   - env `TUNNEL_TOKEN: ${TUNNEL_TOKEN:?}`, network `su-store-net`, restart/logging ตาม Global Constraints
   - healthcheck: ถ้า image รองรับ `cloudflared tunnel ready` (ตรวจด้วย `--help` ของเวอร์ชันนี้) ให้ใช้ `["CMD", "cloudflared", "tunnel", "--metrics", "127.0.0.1:2000", "ready"]` ถ้าไม่รองรับให้คอมเมนต์ว่า image เป็น distroless ไม่มี healthcheck
   - เปิด PR แล้ว merge (deploy job deploy แค่ `su-store-api` ส่วน cloudflared เปิดเองใน Step 4)
-- [ ] **Step 2 [เจ้าของงาน]:** ใน Cloudflare Zero Trust → Networks → Tunnels สร้าง tunnel `su-store` แบบ Cloudflared แล้วคัดลอก token มาใส่ `TUNNEL_TOKEN` ใน `backend/.env`
-- [ ] **Step 3 [เจ้าของงาน]:** ใน tunnel `su-store` เพิ่ม public hostname `next.sumfu.store` → `http://su-store-web:3000` · ใน Zero Trust → Access → Applications สร้าง self-hosted app ครอบ `next.sumfu.store` และ policy Allow เฉพาะอีเมลทีม (One-time PIN)
+- [ ] **Step 2 [เจ้าของงาน]:** ใน Cloudflare Zero Trust → Networks → Tunnels สร้าง tunnel `su-store-v2` แบบ Cloudflared แล้วคัดลอก token มาใส่ `TUNNEL_TOKEN` ใน `backend/.env`
+- [ ] **Step 3 [เจ้าของงาน]:** ใน tunnel `su-store-v2` เพิ่ม public hostname `next.sumfu.store` → `http://su-store-web:3000` · ใน Zero Trust → Access → Applications สร้าง self-hosted app ครอบ `next.sumfu.store` และ policy Allow เฉพาะอีเมลทีม (One-time PIN)
 - [ ] **Step 4:** `docker compose -f /srv/su-store/backend/compose.yml --env-file /srv/su-store/backend/.env up -d su-store-cloudflared` แล้วดูว่า tunnel ขึ้น Healthy ใน dashboard · เปิด `https://next.sumfu.store` จาก browser ที่ไม่ได้ login ต้องเจอหน้า Access
 
 ### Task 6: backup ไปเครื่องเก่า
@@ -220,7 +220,7 @@
   - **ถ้า exit ไม่เป็น 0:** ตั้ง `site_closed=0` ที่เครื่องเก่า แล้วจบคืนนี้ (ยังไม่มีอะไรเปลี่ยนสำหรับลูกค้า)
 - [ ] **Step 4:** ตรวจผ่าน `next.sumfu.store` ตาม checklist ของ Task 7 Step 4 อีกรอบ
 - [ ] **Step 5 [เจ้าของงาน]:** ใน Cloudflare
-  1. tunnel `su-store` เพิ่ม public hostname `sumfu.store` และ `www.sumfu.store` → `http://su-store-web:3000` (DNS record เดิมที่ชี้ tunnel เก่าต้องเปลี่ยนให้ชี้ tunnel ใหม่ ซึ่ง dashboard จะถามให้ override)
+  1. tunnel `su-store-v2` เพิ่ม public hostname `sumfu.store` และ `www.sumfu.store` → `http://su-store-web:3000` (DNS record เดิมที่ชี้ tunnel เก่าต้องเปลี่ยนให้ชี้ tunnel ใหม่ ซึ่ง dashboard จะถามให้ override)
   2. tunnel เก่า (`cloudflared-store` บนเครื่องเก่า) เพิ่ม ingress `fp28.sumfu.store` → `http://localhost:3000` ใน config แล้วรัน `cloudflared tunnel route dns <tunnel> fp28.sumfu.store` และ restart service
   3. Redirect Rule บน `fp28.sumfu.store` ตาม spec ข้อ 4.6
 - [ ] **Step 6:** เครื่องเก่า: เพิ่ม `STORE_V2_GONE=1` ใน `.env` แล้ว `./deploy.sh api` (commit `cutover/block-v2` ต้อง merge และ deploy ไว้ก่อนวันจริง ตาม Execution notes) ตรวจด้วย `curl` ว่า `/v2/products` ตอบ 410 จากนั้นตั้ง `site_closed=0` ที่เครื่องเก่าเพื่อเปิด `fp28.sumfu.store`
@@ -254,3 +254,6 @@
   - **คืนจริง:** เพิ่มบรรทัดใน `.env` แล้ว `./deploy.sh api`
   - **ถอยกลับ:** ลบบรรทัดนั้นแล้ว deploy ใหม่ ไม่ต้อง revert
   - **ผลเทส:** repo เดิมผ่าน 266 + 36
+- **Task 5:** tunnel เดิมของเครื่องเก่า (connector `archlinux`, route `www.sumfu.store`) **ชื่อ `su-store` อยู่แล้ว** ใน dashboard ชื่อจึงชนกับที่แผนตั้งไว้ tunnel ใหม่ของเครื่องใหม่จึงใช้ชื่อ **`su-store-v2`** · ห้ามแก้ route หรือ token ของ `su-store` จนกว่าจะถึง Task 8 Step 5
+- **Task 7 Step 2 (2026-10-21):** deploy ครั้งแรกสำเร็จทั้งสองฝั่ง (backend `31dc25e`, หน้าร้าน `931118c`) `su-store-web` เรียก `su-store-api` ผ่าน `su-store-net` ได้ · merge PR #4 แล้ว deploy อัตโนมัติก็ทำงาน · พบว่า deploy job คัดลอกแค่ `deploy-service.sh` ไม่ได้คัดลอกทั้ง `ops/` จึงแก้ใน PR #5
+

@@ -1,0 +1,3693 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "SU STORE order API",
+    "version": "2.0.0"
+  },
+  "servers": [
+    {
+      "url": "/"
+    }
+  ],
+  "paths": {
+    "/v2/meta": {
+      "get": {
+        "summary": "Store metadata",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreMeta"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/admin/meta": {
+      "get": {
+        "summary": "Admin metadata",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreMeta"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "ClaimAuth": []
+          }
+        ]
+      }
+    },
+    "/v2/categories": {
+      "get": {
+        "summary": "List public categories",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "categories": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/StoreCategory"
+                      }
+                    }
+                  },
+                  "required": [
+                    "categories"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/categories/{slug}": {
+      "get": {
+        "summary": "Get public category",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "category": {
+                      "$ref": "#/components/schemas/StoreCategory"
+                    },
+                    "products": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/StoreProduct"
+                      }
+                    }
+                  },
+                  "required": [
+                    "category",
+                    "products"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "parameters": [
+        {
+          "name": "slug",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/v2/products": {
+      "get": {
+        "summary": "List public products",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "products": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/StoreProduct"
+                      }
+                    }
+                  },
+                  "required": [
+                    "products"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/products/{slug}": {
+      "get": {
+        "summary": "Get public product",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreProduct"
+                }
+              }
+            }
+          }
+        }
+      },
+      "parameters": [
+        {
+          "name": "slug",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/v2/home": {
+      "get": {
+        "summary": "Published home page",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResolvedHome"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/orders": {
+      "post": {
+        "summary": "Create order",
+        "responses": {
+          "201": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreOrder"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "variantId": {
+                          "type": "integer"
+                        },
+                        "quantity": {
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "variantId",
+                        "quantity"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "customer": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  },
+                  "checkoutId": {
+                    "type": "string"
+                  },
+                  "expectedTotal": {
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "items",
+                  "customer"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/orders/lookup": {
+      "post": {
+        "summary": "Look up order",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreOrder"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "orderCode": {
+                    "type": "string"
+                  },
+                  "phone": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "orderCode",
+                  "phone"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/orders/{orderCode}": {
+      "get": {
+        "summary": "Get customer order",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreOrder"
+                }
+              }
+            }
+          }
+        }
+      },
+      "parameters": [
+        {
+          "name": "orderCode",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/v2/orders/{orderCode}/slip": {
+      "post": {
+        "summary": "Upload order slip",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreOrder"
+                }
+              }
+            }
+          }
+        }
+      },
+      "parameters": [
+        {
+          "name": "orderCode",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/v2/admin/login": {
+      "post": {
+        "summary": "Staff login",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string"
+                    },
+                    "username": {
+                      "type": "string"
+                    },
+                    "isSuperadmin": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "token",
+                    "username",
+                    "isSuperadmin"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": {
+                    "type": "string"
+                  },
+                  "password": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "username",
+                  "password"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/admin/me": {
+      "get": {
+        "summary": "Current staff member",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "username": {
+                      "type": "string"
+                    },
+                    "isSuperadmin": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "username",
+                    "isSuperadmin"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "ClaimAuth": []
+          }
+        ]
+      }
+    },
+    "/v2/admin/dashboard": {
+      "get": {
+        "summary": "Sales dashboard",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Dashboard"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "ClaimAuth": []
+          }
+        ]
+      }
+    },
+    "/v2/admin/settings": {
+      "get": {
+        "summary": "Read store settings",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreSettings"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "ClaimAuth": []
+          }
+        ]
+      },
+      "put": {
+        "summary": "Update store settings",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreSettings"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "payment": {
+                    "$ref": "#/components/schemas/PaymentAccount"
+                  },
+                  "announcement": {
+                    "type": "string"
+                  },
+                  "siteClosed": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "ClaimAuth": []
+          }
+        ]
+      },
+      "patch": {
+        "summary": "Partially update store settings",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreSettings"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "payment": {
+                    "$ref": "#/components/schemas/PaymentAccount"
+                  },
+                  "announcement": {
+                    "type": "string"
+                  },
+                  "siteClosed": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "ClaimAuth": []
+          }
+        ]
+      }
+    },
+    "/v2/admin/home": {
+      "get": {
+        "summary": "Read home draft and published layouts",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HomeAdminState"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "ClaimAuth": []
+          }
+        ]
+      },
+      "put": {
+        "summary": "Save home draft",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HomeAdminState"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HomeLayout"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "ClaimAuth": []
+          }
+        ]
+      }
+    },
+    "/v2/admin/home/preview": {
+      "get": {
+        "summary": "Preview home draft",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResolvedHome"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "ClaimAuth": []
+          }
+        ]
+      }
+    },
+    "/v2/admin/home/publish": {
+      "post": {
+        "summary": "Publish home draft",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HomeAdminState"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "ClaimAuth": []
+          }
+        ]
+      }
+    },
+    "/v2/admin/home/discard": {
+      "post": {
+        "summary": "Discard home draft",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HomeAdminState"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "ClaimAuth": []
+          }
+        ]
+      }
+    },
+    "/v2/admin/home/images": {
+      "post": {
+        "summary": "Upload home image",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "url": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "url"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "ClaimAuth": []
+          }
+        ]
+      }
+    },
+    "/v2/admin/images": {
+      "post": {
+        "summary": "Upload admin image",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "url": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "url"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "ClaimAuth": []
+          }
+        ]
+      }
+    },
+    "/v2/admin/categories": {
+      "get": {
+        "summary": "List admin categories",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "categories": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/StoreCategory"
+                      }
+                    }
+                  },
+                  "required": [
+                    "categories"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "ClaimAuth": []
+          }
+        ]
+      },
+      "post": {
+        "summary": "Create category",
+        "responses": {
+          "201": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreCategory"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "nameEn": {
+                    "type": "string"
+                  },
+                  "tagline": {
+                    "type": "string"
+                  },
+                  "taglineEn": {
+                    "type": "string"
+                  },
+                  "coverImage": {
+                    "type": "string"
+                  },
+                  "visible": {
+                    "type": "boolean"
+                  },
+                  "slug": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "ClaimAuth": []
+          }
+        ]
+      }
+    },
+    "/v2/admin/categories/order": {
+      "put": {
+        "summary": "Reorder categories",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "categories": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/StoreCategory"
+                      }
+                    }
+                  },
+                  "required": [
+                    "categories"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "ids": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer"
+                    }
+                  }
+                },
+                "required": [
+                  "ids"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "ClaimAuth": []
+          }
+        ]
+      }
+    },
+    "/v2/admin/categories/{id}": {
+      "get": {
+        "summary": "Get category",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreCategory"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "ClaimAuth": []
+          }
+        ]
+      },
+      "put": {
+        "summary": "Update category",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreCategory"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "nameEn": {
+                    "type": "string"
+                  },
+                  "tagline": {
+                    "type": "string"
+                  },
+                  "taglineEn": {
+                    "type": "string"
+                  },
+                  "coverImage": {
+                    "type": "string"
+                  },
+                  "visible": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "ClaimAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "summary": "Delete category",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "deleted": {
+                      "type": "boolean"
+                    },
+                    "unassigned": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "deleted",
+                    "unassigned"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "ClaimAuth": []
+          }
+        ]
+      },
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ]
+    },
+    "/v2/admin/products": {
+      "get": {
+        "summary": "List admin products",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "products": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/StoreProduct"
+                      }
+                    }
+                  },
+                  "required": [
+                    "products"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "ClaimAuth": []
+          }
+        ]
+      },
+      "post": {
+        "summary": "Create product",
+        "responses": {
+          "201": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreProduct"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "nameEn": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "images": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "status": {
+                    "$ref": "#/components/schemas/ProductStatus"
+                  },
+                  "buyerFields": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "categoryId": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ]
+                  },
+                  "optionKind": {
+                    "type": "string",
+                    "enum": [
+                      "options",
+                      "designs"
+                    ]
+                  },
+                  "variants": {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    }
+                  }
+                },
+                "required": [
+                  "name",
+                  "variants"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "ClaimAuth": []
+          }
+        ]
+      }
+    },
+    "/v2/admin/products/{id}": {
+      "get": {
+        "summary": "Get product",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreProduct"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "ClaimAuth": []
+          }
+        ]
+      },
+      "put": {
+        "summary": "Update product",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreProduct"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "nameEn": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "images": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "status": {
+                    "$ref": "#/components/schemas/ProductStatus"
+                  },
+                  "buyerFields": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "categoryId": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ]
+                  }
+                },
+                "required": [],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "ClaimAuth": []
+          }
+        ]
+      },
+      "patch": {
+        "summary": "Partially update product",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreProduct"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "nameEn": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "images": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "status": {
+                    "$ref": "#/components/schemas/ProductStatus"
+                  },
+                  "buyerFields": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "categoryId": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ]
+                  }
+                },
+                "required": [],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "ClaimAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "summary": "Delete product",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "deleted": {
+                      "type": "boolean"
+                    },
+                    "archived": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "deleted",
+                    "archived"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "ClaimAuth": []
+          }
+        ]
+      },
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ]
+    },
+    "/v2/admin/products/{id}/variants": {
+      "put": {
+        "summary": "Replace variants",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreProduct"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "ClaimAuth": []
+          }
+        ]
+      },
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ]
+    },
+    "/v2/admin/products/{id}/images": {
+      "post": {
+        "summary": "Add product image",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreProduct"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "ClaimAuth": []
+          }
+        ]
+      },
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ]
+    },
+    "/v2/admin/orders": {
+      "get": {
+        "summary": "List orders",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "orders": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/StoreOrder"
+                      }
+                    },
+                    "total": {
+                      "type": "integer"
+                    },
+                    "page": {
+                      "type": "integer"
+                    },
+                    "perPage": {
+                      "type": "integer"
+                    },
+                    "statusCounts": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "integer"
+                      }
+                    }
+                  },
+                  "required": [
+                    "orders",
+                    "total",
+                    "page",
+                    "perPage",
+                    "statusCounts"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "ClaimAuth": []
+          }
+        ]
+      }
+    },
+    "/v2/admin/orders.csv": {
+      "get": {
+        "summary": "Export orders CSV",
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "ClaimAuth": []
+          }
+        ]
+      }
+    },
+    "/v2/admin/orders/{orderCode}": {
+      "get": {
+        "summary": "Get admin order",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreOrder"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "ClaimAuth": []
+          }
+        ]
+      },
+      "patch": {
+        "summary": "Update order",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreOrder"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "$ref": "#/components/schemas/OrderStatus"
+                  },
+                  "adminNote": {
+                    "type": "string"
+                  }
+                },
+                "required": [],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "ClaimAuth": []
+          }
+        ]
+      },
+      "parameters": [
+        {
+          "name": "orderCode",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/v2/admin/orders/{orderCode}/slip": {
+      "get": {
+        "summary": "Download order slip",
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "ClaimAuth": []
+          }
+        ]
+      },
+      "parameters": [
+        {
+          "name": "orderCode",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/v2/admin/receipt-template": {
+      "get": {
+        "summary": "Receipt SVG template",
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "ClaimAuth": []
+          }
+        ]
+      }
+    },
+    "/v2/admin/receipt-settings": {
+      "get": {
+        "summary": "Read receipt settings",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReceiptSettings"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "ClaimAuth": []
+          }
+        ]
+      },
+      "put": {
+        "summary": "Update receipt settings",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReceiptSettings"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReceiptSettings"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "ClaimAuth": []
+          }
+        ]
+      }
+    },
+    "/v2/admin/orders/{orderCode}/receipts": {
+      "get": {
+        "summary": "List order receipts",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "receipts": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/StoreReceipt"
+                      }
+                    },
+                    "warning": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "receipts",
+                    "warning"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "ClaimAuth": []
+          }
+        ]
+      },
+      "parameters": [
+        {
+          "name": "orderCode",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/v2/admin/orders/{orderCode}/receipt": {
+      "post": {
+        "summary": "Issue receipt",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IssuedReceipt"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "customer": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      },
+                      "studentCode": {
+                        "type": "string"
+                      },
+                      "school": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "customer"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "ClaimAuth": []
+          }
+        ]
+      },
+      "parameters": [
+        {
+          "name": "orderCode",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/v2/admin/receipts/{receiptId}": {
+      "get": {
+        "summary": "Get receipt",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreReceipt"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "ClaimAuth": []
+          }
+        ]
+      },
+      "parameters": [
+        {
+          "name": "receiptId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ]
+    },
+    "/v2/admin/receipts/{receiptId}/cancel": {
+      "post": {
+        "summary": "Cancel receipt",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreReceipt"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reason": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "reason"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "ClaimAuth": []
+          }
+        ]
+      },
+      "parameters": [
+        {
+          "name": "receiptId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ]
+    },
+    "/v2/admin/users": {
+      "get": {
+        "summary": "List staff",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "users": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/StaffMember"
+                      }
+                    }
+                  },
+                  "required": [
+                    "users"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "ClaimAuth": []
+          }
+        ]
+      },
+      "post": {
+        "summary": "Create staff",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "user": {
+                      "$ref": "#/components/schemas/StaffMember"
+                    },
+                    "password": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "user",
+                    "password"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "username"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "ClaimAuth": []
+          }
+        ]
+      }
+    },
+    "/v2/admin/users/{username}": {
+      "patch": {
+        "summary": "Change superadmin status",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StaffMember"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "isSuperadmin": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "isSuperadmin"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "ClaimAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "summary": "Delete staff",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "ok"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "ClaimAuth": []
+          }
+        ]
+      },
+      "parameters": [
+        {
+          "name": "username",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/v2/admin/users/{username}/reset-password": {
+      "post": {
+        "summary": "Reset staff password",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "password": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "password"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "ClaimAuth": []
+          }
+        ]
+      },
+      "parameters": [
+        {
+          "name": "username",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer"
+      },
+      "ClaimAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "Authorization"
+      }
+    },
+    "schemas": {
+      "StoreCategory": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "nameEn": {
+            "type": "string"
+          },
+          "tagline": {
+            "type": "string"
+          },
+          "taglineEn": {
+            "type": "string"
+          },
+          "coverImage": {
+            "type": "string"
+          },
+          "visible": {
+            "type": "boolean"
+          },
+          "sortOrder": {
+            "type": "integer"
+          },
+          "productCount": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "slug",
+          "name",
+          "nameEn",
+          "tagline",
+          "taglineEn",
+          "coverImage",
+          "visible",
+          "sortOrder",
+          "productCount"
+        ],
+        "additionalProperties": false
+      },
+      "StaffMember": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string"
+          },
+          "isSuperadmin": {
+            "type": "boolean"
+          },
+          "createdBy": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "username",
+          "isSuperadmin",
+          "createdBy",
+          "createdAt"
+        ],
+        "additionalProperties": false
+      },
+      "StoreVariant": {
+        "type": "object",
+        "properties": {
+          "designCode": {
+            "type": "string"
+          },
+          "designName": {
+            "type": "string"
+          },
+          "designNameEn": {
+            "type": "string"
+          },
+          "image": {
+            "type": "string"
+          },
+          "images": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "id": {
+            "type": "integer"
+          },
+          "size": {
+            "type": "string"
+          },
+          "color": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "price": {
+            "type": "integer"
+          },
+          "stock": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "sku": {
+            "type": "string"
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "soldOut": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "designCode",
+          "designName",
+          "designNameEn",
+          "image",
+          "images",
+          "id",
+          "size",
+          "color",
+          "label",
+          "price",
+          "stock",
+          "sku",
+          "active",
+          "soldOut"
+        ],
+        "additionalProperties": false
+      },
+      "ProductStatus": {
+        "type": "string",
+        "enum": [
+          "draft",
+          "active",
+          "archived"
+        ]
+      },
+      "SaleState": {
+        "type": "string",
+        "enum": [
+          "open",
+          "upcoming",
+          "ended"
+        ]
+      },
+      "StoreProduct": {
+        "type": "object",
+        "properties": {
+          "nameEn": {
+            "type": "string"
+          },
+          "categoryId": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "optionKind": {
+            "type": "string",
+            "enum": [
+              "options",
+              "designs"
+            ]
+          },
+          "id": {
+            "type": "integer"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "images": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "status": {
+            "$ref": "#/components/schemas/ProductStatus"
+          },
+          "buyerFields": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "sortOrder": {
+            "type": "integer"
+          },
+          "saleStartsAt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "saleEndsAt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "saleState": {
+            "$ref": "#/components/schemas/SaleState"
+          },
+          "minPrice": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "maxPrice": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "soldOut": {
+            "type": "boolean"
+          },
+          "variants": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StoreVariant"
+            }
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "nameEn",
+          "categoryId",
+          "optionKind",
+          "id",
+          "slug",
+          "name",
+          "description",
+          "images",
+          "status",
+          "buyerFields",
+          "sortOrder",
+          "saleStartsAt",
+          "saleEndsAt",
+          "saleState",
+          "minPrice",
+          "maxPrice",
+          "soldOut",
+          "variants",
+          "createdAt",
+          "updatedAt"
+        ],
+        "additionalProperties": false
+      },
+      "OrderStatus": {
+        "type": "string",
+        "enum": [
+          "pending_payment",
+          "waiting_confirm",
+          "paid",
+          "ready",
+          "completed",
+          "cancelled"
+        ]
+      },
+      "StoreOrderItem": {
+        "type": "object",
+        "properties": {
+          "variantId": {
+            "type": "integer"
+          },
+          "productId": {
+            "type": "integer"
+          },
+          "productName": {
+            "type": "string"
+          },
+          "productNameEn": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "variantLabel": {
+            "type": "string"
+          },
+          "variantLabelEn": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "unitPrice": {
+            "type": "integer"
+          },
+          "quantity": {
+            "type": "integer"
+          },
+          "lineTotal": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "variantId",
+          "productId",
+          "productName",
+          "productNameEn",
+          "variantLabel",
+          "variantLabelEn",
+          "unitPrice",
+          "quantity",
+          "lineTotal"
+        ],
+        "additionalProperties": false
+      },
+      "StoreOrder": {
+        "type": "object",
+        "properties": {
+          "orderCode": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/OrderStatus"
+          },
+          "statusLabel": {
+            "type": "string"
+          },
+          "customer": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "totalAmount": {
+            "type": "integer"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StoreOrderItem"
+            }
+          },
+          "hasSlip": {
+            "type": "boolean"
+          },
+          "slipUploadedAt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "adminNote": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          },
+          "accessToken": {
+            "type": "string"
+          },
+          "receiptWarning": {
+            "type": "boolean"
+          },
+          "slipCheck": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string"
+                  },
+                  "amount": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "raw_reason": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "duplicate_of": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "required": [
+                  "status",
+                  "amount",
+                  "raw_reason",
+                  "duplicate_of"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "orderCode",
+          "status",
+          "statusLabel",
+          "customer",
+          "totalAmount",
+          "items",
+          "hasSlip",
+          "slipUploadedAt",
+          "adminNote",
+          "createdAt",
+          "updatedAt"
+        ],
+        "additionalProperties": false
+      },
+      "PaymentAccount": {
+        "type": "object",
+        "properties": {
+          "bankName": {
+            "type": "string"
+          },
+          "accountNumber": {
+            "type": "string"
+          },
+          "accountName": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "bankName",
+          "accountNumber",
+          "accountName"
+        ],
+        "additionalProperties": false
+      },
+      "StoreMeta": {
+        "type": "object",
+        "properties": {
+          "buyerFields": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "key": {
+                  "type": "string"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "alwaysRequired": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "key",
+                "label",
+                "alwaysRequired"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "orderStatuses": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "key": {
+                  "$ref": "#/components/schemas/OrderStatus"
+                },
+                "label": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "key",
+                "label"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "productStatuses": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "key": {
+                  "$ref": "#/components/schemas/ProductStatus"
+                },
+                "label": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "key",
+                "label"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "payment": {
+            "$ref": "#/components/schemas/PaymentAccount"
+          },
+          "announcement": {
+            "type": "string"
+          },
+          "accent": {
+            "type": "string"
+          },
+          "radius": {
+            "type": "number"
+          },
+          "font": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "buyerFields",
+          "orderStatuses",
+          "productStatuses"
+        ],
+        "additionalProperties": true
+      },
+      "StoreSettings": {
+        "type": "object",
+        "properties": {
+          "payment": {
+            "$ref": "#/components/schemas/PaymentAccount"
+          },
+          "announcement": {
+            "type": "string"
+          },
+          "siteClosed": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "payment",
+          "announcement",
+          "siteClosed"
+        ],
+        "additionalProperties": false
+      },
+      "Dashboard": {
+        "type": "object",
+        "properties": {
+          "paidAmount": {
+            "type": "number"
+          },
+          "awaitingAmount": {
+            "type": "number"
+          },
+          "orderCount": {
+            "type": "integer"
+          },
+          "statusCounts": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer"
+            }
+          },
+          "byDay": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "date": {
+                  "type": "string"
+                },
+                "paidAmount": {
+                  "type": "number"
+                },
+                "orders": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "date",
+                "paidAmount",
+                "orders"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "byVariant": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "productName": {
+                  "type": "string"
+                },
+                "variantLabel": {
+                  "type": "string"
+                },
+                "paidQuantity": {
+                  "type": "integer"
+                },
+                "unpaidQuantity": {
+                  "type": "integer"
+                },
+                "paidAmount": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "productName",
+                "variantLabel",
+                "paidQuantity",
+                "unpaidQuantity",
+                "paidAmount"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "paidAmount",
+          "awaitingAmount",
+          "orderCount",
+          "statusCounts",
+          "byDay",
+          "byVariant"
+        ],
+        "additionalProperties": false
+      },
+      "HeroSlide": {
+        "type": "object",
+        "properties": {
+          "image": {
+            "type": "string"
+          },
+          "eyebrow": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "subtitle": {
+            "type": "string"
+          },
+          "buttonText": {
+            "type": "string"
+          },
+          "buttonHref": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "image",
+          "eyebrow",
+          "title",
+          "subtitle",
+          "buttonText",
+          "buttonHref"
+        ],
+        "additionalProperties": false
+      },
+      "HomeBlock": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "hidden": {
+                "type": "boolean"
+              },
+              "radius": {
+                "type": "integer",
+                "description": "Optional block corner radius; omitted means use the store setting."
+              },
+              "type": {
+                "type": "string",
+                "const": "categories"
+              },
+              "title": {
+                "type": "string"
+              },
+              "categoryIds": {
+                "type": "array",
+                "items": {
+                  "type": "integer"
+                }
+              },
+              "categories": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/StoreCategory"
+                }
+              }
+            },
+            "required": [
+              "id",
+              "hidden",
+              "type",
+              "title",
+              "categoryIds"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "hidden": {
+                "type": "boolean"
+              },
+              "radius": {
+                "type": "integer",
+                "description": "Optional block corner radius; omitted means use the store setting."
+              },
+              "type": {
+                "type": "string",
+                "const": "hero"
+              },
+              "autoplay": {
+                "type": "boolean"
+              },
+              "slides": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/HeroSlide"
+                }
+              }
+            },
+            "required": [
+              "id",
+              "hidden",
+              "type",
+              "autoplay",
+              "slides"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "hidden": {
+                "type": "boolean"
+              },
+              "radius": {
+                "type": "integer",
+                "description": "Optional block corner radius; omitted means use the store setting."
+              },
+              "type": {
+                "type": "string",
+                "const": "featured"
+              },
+              "title": {
+                "type": "string"
+              },
+              "productIds": {
+                "type": "array",
+                "items": {
+                  "type": "integer"
+                }
+              },
+              "products": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/StoreProduct"
+                }
+              }
+            },
+            "required": [
+              "id",
+              "hidden",
+              "type",
+              "title",
+              "productIds"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "hidden": {
+                "type": "boolean"
+              },
+              "radius": {
+                "type": "integer",
+                "description": "Optional block corner radius; omitted means use the store setting."
+              },
+              "type": {
+                "type": "string",
+                "const": "text"
+              },
+              "title": {
+                "type": "string"
+              },
+              "body": {
+                "type": "string"
+              },
+              "align": {
+                "type": "string",
+                "enum": [
+                  "left",
+                  "center"
+                ]
+              }
+            },
+            "required": [
+              "id",
+              "hidden",
+              "type",
+              "title",
+              "body",
+              "align"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "hidden": {
+                "type": "boolean"
+              },
+              "radius": {
+                "type": "integer",
+                "description": "Optional block corner radius; omitted means use the store setting."
+              },
+              "type": {
+                "type": "string",
+                "const": "imageText"
+              },
+              "image": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "body": {
+                "type": "string"
+              },
+              "buttonText": {
+                "type": "string"
+              },
+              "buttonHref": {
+                "type": "string"
+              },
+              "imageSide": {
+                "type": "string",
+                "enum": [
+                  "left",
+                  "right"
+                ]
+              }
+            },
+            "required": [
+              "id",
+              "hidden",
+              "type",
+              "image",
+              "title",
+              "body",
+              "buttonText",
+              "buttonHref",
+              "imageSide"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "hidden": {
+                "type": "boolean"
+              },
+              "radius": {
+                "type": "integer",
+                "description": "Optional block corner radius; omitted means use the store setting."
+              },
+              "type": {
+                "type": "string",
+                "const": "allProducts"
+              },
+              "title": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "hidden",
+              "type",
+              "title"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "HomeLayout": {
+        "type": "object",
+        "properties": {
+          "accent": {
+            "type": "string"
+          },
+          "radius": {
+            "type": "integer"
+          },
+          "font": {
+            "type": "string"
+          },
+          "blocks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HomeBlock"
+            }
+          }
+        },
+        "required": [
+          "accent",
+          "radius",
+          "font",
+          "blocks"
+        ],
+        "additionalProperties": false
+      },
+      "ResolvedHome": {
+        "type": "object",
+        "properties": {
+          "accent": {
+            "type": "string"
+          },
+          "radius": {
+            "type": "integer"
+          },
+          "font": {
+            "type": "string"
+          },
+          "blocks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HomeBlock"
+            }
+          },
+          "products": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StoreProduct"
+            }
+          }
+        },
+        "required": [
+          "accent",
+          "radius",
+          "font",
+          "blocks",
+          "products"
+        ],
+        "additionalProperties": false
+      },
+      "HomeAdminState": {
+        "type": "object",
+        "properties": {
+          "draft": {
+            "$ref": "#/components/schemas/HomeLayout"
+          },
+          "published": {
+            "$ref": "#/components/schemas/HomeLayout"
+          },
+          "dirty": {
+            "type": "boolean"
+          },
+          "publishedAt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "draft",
+          "published",
+          "dirty",
+          "publishedAt"
+        ],
+        "additionalProperties": false
+      },
+      "ReceiptField": {
+        "type": "object",
+        "properties": {
+          "x": {
+            "type": "number"
+          },
+          "y": {
+            "type": "number"
+          },
+          "size": {
+            "type": "number"
+          },
+          "anchor": {
+            "type": "string",
+            "enum": [
+              "start",
+              "middle",
+              "end"
+            ]
+          }
+        },
+        "required": [
+          "x",
+          "y",
+          "size",
+          "anchor"
+        ],
+        "additionalProperties": false
+      },
+      "ReceiptColumn": {
+        "type": "object",
+        "properties": {
+          "x": {
+            "type": "number"
+          },
+          "width": {
+            "type": "number"
+          },
+          "anchor": {
+            "type": "string",
+            "enum": [
+              "start",
+              "middle",
+              "end"
+            ]
+          }
+        },
+        "required": [
+          "x",
+          "width",
+          "anchor"
+        ],
+        "additionalProperties": false
+      },
+      "ReceiptLayout": {
+        "type": "object",
+        "properties": {
+          "rightCopyOffset": {
+            "type": "number"
+          },
+          "fields": {
+            "type": "object",
+            "properties": {
+              "date": {
+                "$ref": "#/components/schemas/ReceiptField"
+              },
+              "receiptNo": {
+                "$ref": "#/components/schemas/ReceiptField"
+              },
+              "customer": {
+                "$ref": "#/components/schemas/ReceiptField"
+              },
+              "studentId": {
+                "$ref": "#/components/schemas/ReceiptField"
+              },
+              "school": {
+                "$ref": "#/components/schemas/ReceiptField"
+              },
+              "subtotal": {
+                "$ref": "#/components/schemas/ReceiptField"
+              },
+              "total": {
+                "$ref": "#/components/schemas/ReceiptField"
+              },
+              "words": {
+                "$ref": "#/components/schemas/ReceiptField"
+              },
+              "payeeName": {
+                "$ref": "#/components/schemas/ReceiptField"
+              },
+              "pageNo": {
+                "$ref": "#/components/schemas/ReceiptField"
+              }
+            },
+            "required": [
+              "date",
+              "receiptNo",
+              "customer",
+              "studentId",
+              "school",
+              "subtotal",
+              "total",
+              "words",
+              "payeeName",
+              "pageNo"
+            ],
+            "additionalProperties": false
+          },
+          "signature": {
+            "type": "object",
+            "properties": {
+              "x": {
+                "type": "number"
+              },
+              "y": {
+                "type": "number"
+              },
+              "width": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "x",
+              "y",
+              "width"
+            ],
+            "additionalProperties": false
+          },
+          "table": {
+            "type": "object",
+            "properties": {
+              "firstY": {
+                "type": "number"
+              },
+              "rowSpacing": {
+                "type": "number"
+              },
+              "size": {
+                "type": "number"
+              },
+              "bottomY": {
+                "type": "number"
+              },
+              "cols": {
+                "type": "object",
+                "properties": {
+                  "no": {
+                    "$ref": "#/components/schemas/ReceiptColumn"
+                  },
+                  "name": {
+                    "$ref": "#/components/schemas/ReceiptColumn"
+                  },
+                  "qty": {
+                    "$ref": "#/components/schemas/ReceiptColumn"
+                  },
+                  "price": {
+                    "$ref": "#/components/schemas/ReceiptColumn"
+                  },
+                  "amount": {
+                    "$ref": "#/components/schemas/ReceiptColumn"
+                  }
+                },
+                "required": [
+                  "no",
+                  "name",
+                  "qty",
+                  "price",
+                  "amount"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "firstY",
+              "rowSpacing",
+              "size",
+              "bottomY",
+              "cols"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "rightCopyOffset",
+          "fields",
+          "signature",
+          "table"
+        ],
+        "additionalProperties": false
+      },
+      "ReceiptSnapshot": {
+        "type": "object",
+        "properties": {
+          "receiptNo": {
+            "type": "string"
+          },
+          "issuedAt": {
+            "type": "string"
+          },
+          "customer": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "studentCode": {
+                "type": "string"
+              },
+              "school": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "name",
+              "studentCode",
+              "school"
+            ],
+            "additionalProperties": false
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "no": {
+                  "type": "integer"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "quantity": {
+                  "type": "integer"
+                },
+                "unitPrice": {
+                  "type": "integer"
+                },
+                "amount": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "no",
+                "name",
+                "quantity",
+                "unitPrice",
+                "amount"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "total": {
+            "type": "integer"
+          },
+          "totalText": {
+            "type": "string"
+          },
+          "payeeName": {
+            "type": "string"
+          },
+          "signatureUrl": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "receiptNo",
+          "issuedAt",
+          "customer",
+          "lines",
+          "total",
+          "totalText",
+          "payeeName",
+          "signatureUrl"
+        ],
+        "additionalProperties": false
+      },
+      "StoreReceipt": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "receiptNo": {
+            "type": "string"
+          },
+          "orderCode": {
+            "type": "string"
+          },
+          "issuedAt": {
+            "type": "string"
+          },
+          "issuedBy": {
+            "type": "string"
+          },
+          "snapshot": {
+            "$ref": "#/components/schemas/ReceiptSnapshot"
+          },
+          "cancelledAt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "cancelledBy": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "cancelReason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "receiptNo",
+          "orderCode",
+          "issuedAt",
+          "issuedBy",
+          "snapshot",
+          "cancelledAt",
+          "cancelledBy",
+          "cancelReason"
+        ],
+        "additionalProperties": false
+      },
+      "IssuedReceipt": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "receiptNo": {
+            "type": "string"
+          },
+          "orderCode": {
+            "type": "string"
+          },
+          "issuedAt": {
+            "type": "string"
+          },
+          "issuedBy": {
+            "type": "string"
+          },
+          "snapshot": {
+            "$ref": "#/components/schemas/ReceiptSnapshot"
+          },
+          "cancelledAt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "cancelledBy": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "cancelReason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "created": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "receiptNo",
+          "orderCode",
+          "issuedAt",
+          "issuedBy",
+          "snapshot",
+          "cancelledAt",
+          "cancelledBy",
+          "cancelReason",
+          "created"
+        ],
+        "additionalProperties": false
+      },
+      "ReceiptSettings": {
+        "type": "object",
+        "properties": {
+          "payeeName": {
+            "type": "string"
+          },
+          "signatureUrl": {
+            "type": "string"
+          },
+          "prefix": {
+            "type": "string"
+          },
+          "layout": {
+            "$ref": "#/components/schemas/ReceiptLayout"
+          },
+          "nextReceiptNo": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "payeeName",
+          "signatureUrl",
+          "prefix",
+          "layout"
+        ],
+        "additionalProperties": false
+      },
+      "ReceiptPage": {
+        "type": "object",
+        "properties": {
+          "rows": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "line": {
+                  "$ref": "#/components/schemas/ReceiptLine"
+                },
+                "nameLines": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "required": [
+                "line",
+                "nameLines"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "pageNo": {
+            "type": "integer"
+          },
+          "pageCount": {
+            "type": "integer"
+          },
+          "isLast": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "rows",
+          "pageNo",
+          "pageCount",
+          "isLast"
+        ],
+        "additionalProperties": false
+      },
+      "ReceiptLine": {
+        "type": "object",
+        "properties": {
+          "no": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "integer"
+          },
+          "unitPrice": {
+            "type": "integer"
+          },
+          "amount": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "no",
+          "name",
+          "quantity",
+          "unitPrice",
+          "amount"
+        ],
+        "additionalProperties": false
+      }
+    }
+  }
+}

@@ -1,0 +1,10 @@
+# Persistent: a backup missed while the host was down runs at the next boot.
+[Unit]
+Description=Run the SU STORE backup every day at 04:00 Bangkok time
+
+[Timer]
+OnCalendar=*-*-* 04:00:00 Asia/Bangkok
+Persistent=true
+
+[Install]
+WantedBy=timers.target

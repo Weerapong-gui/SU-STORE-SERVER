@@ -53,3 +53,11 @@ def test_image_is_multi_arch() -> None:
                     image_steps.append(step)
                     assert step.get("with", {}).get("platforms") == "linux/amd64,linux/arm64"
     assert image_steps, "no docker/build-push-action@v6 step found"
+
+
+def test_backend_deploy_installs_the_whole_ops_tree() -> None:
+    # backup.sh (systemd timer), migrate/ and deploy-service.sh (also run by the frontend)
+    # are all executed from ${SU_STORE_DIR}/backend/ops on the host.
+    deploy = yaml.safe_load((WORKFLOW_DIR / "deploy.yml").read_text(encoding="utf-8"))
+    runs = "\n".join(step.get("run", "") for step in deploy["jobs"]["deploy"]["steps"])
+    assert 'cp -R ops/. "${SU_STORE_DIR}/backend/ops/"' in runs

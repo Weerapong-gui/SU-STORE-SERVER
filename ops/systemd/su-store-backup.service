@@ -1,0 +1,11 @@
+# Installed to /etc/systemd/system/ on the production host (plan 3, Task 4).
+[Unit]
+Description=SU STORE daily SQLite backup
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+User=su-runner
+Environment=SU_STORE_DIR=/srv/su-store
+ExecStart=/srv/su-store/backend/ops/backup.sh

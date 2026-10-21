@@ -34,3 +34,8 @@ ORDER_API_DB_PATH=/tmp/su-order-api/orders.db ORDER_API_SLIPS_DIR=/tmp/su-order-
 ## Deploy
 
 ภาพรวมคือ GitHub Actions สร้าง container image ของ backend และขั้น deploy บนเครื่องที่กำหนดจะดึง image ไปอัปเดต service รายละเอียดการตั้งค่าเครื่องและขั้นตอนปฏิบัติอยู่ใน skill `deploy` ของผู้ดูแลระบบ
+
+## Backup
+
+ทุกวันเวลา 04:00 (เวลาไทย) systemd timer `su-store-backup.timer` บนเครื่อง production จะรัน `ops/backup.sh` ซึ่งทำ `sqlite3 .backup()` ของ DB ภายใน container `su-store-api` ไว้ที่ `data/order-api/backups/` และตรวจด้วย `PRAGMA integrity_check` สำเร็จแล้วเขียน `LAST_OK` และเก็บ backup ไว้ 14 วัน ส่วนเครื่องสำรองจะดึง backup สลิป และรูปสินค้าไปเก็บเองทุกวัน (ไม่มีการลบไฟล์ฝั่งปลายทาง) ถ้าล้มเหลวให้ดูที่ `journalctl -u su-store-backup`
+

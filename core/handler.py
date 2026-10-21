@@ -20,6 +20,29 @@ from .database import open_db
 from .slips import persist_slip_file, sanitize_file_name
 from .timeutil import TZ_BANGKOK, now_iso
 
+# A route may refuse a request before reading its body. Closing the socket with that body
+# still unread makes Linux answer with RST, which discards response bytes not yet delivered,
+# so small leftovers are read and dropped first. Bigger ones (refused uploads) are not waited
+# for, and the wait is bounded so a client that never sends its body cannot hold a thread.
+UNREAD_BODY_DRAIN_LIMIT = 64 * 1024
+UNREAD_BODY_DRAIN_SECONDS = 5
+
+
+class _CountingReader:
+    """Wraps rfile to remember how much of the declared body the route has read."""
+
+    def __init__(self, raw: Any, declared: int) -> None:
+        self._raw = raw
+        self.remaining = declared
+
+    def read(self, size: int = -1) -> bytes:
+        data = self._raw.read(self.remaining if size is None or size < 0 else min(size, self.remaining))
+        self.remaining -= len(data)
+        return data
+
+    def __getattr__(self, name: str) -> Any:
+        return getattr(self._raw, name)
+
 
 class OrderRequestHandler(BaseHTTPRequestHandler):
     server_version = "SUOrderAPI/1.0"
@@ -148,6 +171,29 @@ class OrderRequestHandler(BaseHTTPRequestHandler):
         print(f"[{timestamp}] {self.client_address[0]} {format % args}")
 
     def _dispatch(self, method: str) -> None:
+        try:
+            declared = max(0, int(self.headers.get("Content-Length", "0")))
+        except ValueError:
+            declared = 0  # the routes reject a malformed length themselves
+        body = _CountingReader(self.rfile, declared)
+        self.rfile = body
+        try:
+            self._route(method)
+        finally:
+            self._drain_unread_body(body)
+
+    def _drain_unread_body(self, body: _CountingReader) -> None:
+        if not 0 < body.remaining <= UNREAD_BODY_DRAIN_LIMIT:
+            return
+        self.wfile.flush()
+        self.connection.settimeout(UNREAD_BODY_DRAIN_SECONDS)
+        try:
+            while body.remaining and body.read(body.remaining):
+                pass
+        except OSError:
+            pass  # the client gave up or stalled; the response is already sent, just close
+
+    def _route(self, method: str) -> None:
         path = urlparse(self.path).path
         if path.startswith("/v2/"):
             store_api.handle(self, method)

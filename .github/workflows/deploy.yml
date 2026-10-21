@@ -99,7 +99,8 @@ jobs:
         run: |
           install -d "${SU_STORE_DIR:?}/backend/ops"
           cp compose.yml "${SU_STORE_DIR}/backend/compose.yml"
-          cp ops/deploy-service.sh "${SU_STORE_DIR}/backend/ops/deploy-service.sh"
+          # The whole ops/ tree: the frontend deploy, the backup timer and the migration use it too.
+          cp -R ops/. "${SU_STORE_DIR}/backend/ops/"
 
       - name: Deploy backend image
         run: '"${SU_STORE_DIR:?}/backend/ops/deploy-service.sh" backend "$DEPLOY_SHA"'

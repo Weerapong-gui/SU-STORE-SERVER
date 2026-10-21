@@ -1,4 +1,4 @@
-"""SU STORE order-api entrypoint: `python order_api.py` (see server/CLAUDE.md for the layout)."""
+"""SU STORE order-api entrypoint: `python order_api.py` (see README.md for the layout)."""
 from __future__ import annotations
 
 import os

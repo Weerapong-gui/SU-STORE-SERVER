@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from server.store import db, receipts
+from store import db, receipts
 
 from .test_store_v2 import CUSTOMER, _call, _conn, _product
 from .test_store_v2 import server as _http_server

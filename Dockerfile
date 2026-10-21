@@ -16,11 +16,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 RUN pip install --no-cache-dir pytesseract==0.3.13 Pillow==10.4.0 opencv-python-headless numpy
 
-COPY server/order_api.py ./order_api.py
-COPY server/ocr.py ./ocr.py
-COPY server/core/ ./core/
-COPY server/store/ ./store/
-COPY server/contract/ ./contract/
+COPY order_api.py ./order_api.py
+COPY ocr.py ./ocr.py
+COPY core/ ./core/
+COPY store/ ./store/
+COPY contract/ ./contract/
 
 RUN mkdir -p /var/data/su-order-api/slips /var/data/easyocr-models
 

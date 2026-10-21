@@ -3,6 +3,7 @@ import copy
 from pathlib import Path
 
 import pytest
+
 from store import db, designs, home, receipts
 from store.common import StoreError
 from store.contract import CONTRACT, RECEIPT_TEMPLATE_PATH

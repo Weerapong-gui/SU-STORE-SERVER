@@ -4,6 +4,7 @@ from datetime import datetime
 from uuid import uuid4
 
 import pytest
+
 from core import config, visitors
 from core.timeutil import TZ_BANGKOK, now_iso
 

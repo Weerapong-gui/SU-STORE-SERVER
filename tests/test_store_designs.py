@@ -2,6 +2,7 @@
 import sqlite3
 
 import pytest
+
 from store import db
 from store.designs import design_label
 

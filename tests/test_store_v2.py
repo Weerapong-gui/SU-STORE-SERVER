@@ -1,4 +1,4 @@
-"""SU STORE v2 (`server/store/`) — catalog, order codes, server-side pricing, stock,
+"""SU STORE v2 (`store/`) — catalog, order codes, server-side pricing, stock,
 and an HTTP round-trip through OrderRequestHandler."""
 import json
 import os

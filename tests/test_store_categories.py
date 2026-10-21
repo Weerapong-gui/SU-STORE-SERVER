@@ -8,7 +8,7 @@ from typing import Any
 
 import pytest
 
-from server.store import api, categories, db
+from store import api, categories, db
 
 from .test_store_v2 import CUSTOMER, _call, _conn, _product, server  # noqa: F401
 

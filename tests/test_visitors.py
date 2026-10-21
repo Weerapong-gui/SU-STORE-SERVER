@@ -1,4 +1,5 @@
 import pytest
+
 from core import visitors
 
 ID_A = "3f2b8c1e-9a4d-4e7b-8c2a-1d5e6f7a8b9c"

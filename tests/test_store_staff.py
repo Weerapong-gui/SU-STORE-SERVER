@@ -5,6 +5,7 @@ import threading
 from urllib.parse import quote
 
 import pytest
+
 from core import auth, config
 from store import db, staff
 

@@ -71,6 +71,19 @@ def test_product_image_rejects_path_tricks(server):  # noqa: F811 (imported pyte
 
 
 
+def _read_http_response(sock) -> bytes:
+    """Read exactly one response (headers + Content-Length body); TCP may split it."""
+    data = b""
+    while b"\r\n\r\n" not in data:
+        data += sock.recv(65536)
+    head, _, body = data.partition(b"\r\n\r\n")
+    length = int(next(line.split(b":", 1)[1] for line in head.split(b"\r\n")
+                      if line.lower().startswith(b"content-length:")))
+    while len(body) < length:
+        body += sock.recv(65536)
+    return head + b"\r\n\r\n" + body
+
+
 def test_early_error_waits_for_and_drains_the_unread_body(server):  # noqa: F811 (imported pytest fixture)
     # A route that refuses a request before reading its body must still consume it: closing a
     # socket with unread data makes Linux send RST, which discards any response bytes not yet
@@ -85,7 +98,7 @@ def test_early_error_waits_for_and_drains_the_unread_body(server):  # noqa: F811
             b"POST /v2/admin/images HTTP/1.1\r\nHost: x\r\nAuthorization: Bearer test-token\r\n"
             b"Content-Type: application/json\r\nContent-Length: " + str(len(body)).encode() + b"\r\n\r\n"
         )
-        response = sock.recv(65536)
+        response = _read_http_response(sock)
         assert response.split(b"\r\n", 1)[0].endswith(b"400 Bad Request")
         sock.settimeout(0.5)
         with pytest.raises(TimeoutError):  # still waiting for the body, not closed under us

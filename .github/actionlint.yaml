@@ -1,0 +1,4 @@
+# Custom label of the self-hosted runner on the production host (set up in plan 3).
+self-hosted-runner:
+  labels:
+    - su-store

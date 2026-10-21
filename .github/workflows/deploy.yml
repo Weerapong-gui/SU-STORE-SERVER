@@ -78,3 +78,28 @@ jobs:
           tags: |
             ghcr.io/weerapong-gui/su-store-server:${{ github.sha }}
             ghcr.io/weerapong-gui/su-store-server:main
+
+  deploy:
+    needs: [image]
+    if: always() && vars.DEPLOY_ENABLED == 'true' && (needs.image.result == 'success' || inputs.sha != '')
+    runs-on: [self-hosted, su-store]
+    environment: production
+    permissions:
+      contents: read
+    env:
+      DEPLOY_SHA: ${{ inputs.sha || github.sha }}
+    steps:
+      - name: Check out deployment revision
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.DEPLOY_SHA }}
+
+      - name: Install backend deployment files
+        shell: bash
+        run: |
+          install -d "${SU_STORE_DIR:?}/backend/ops"
+          cp compose.yml "${SU_STORE_DIR}/backend/compose.yml"
+          cp ops/deploy-service.sh "${SU_STORE_DIR}/backend/ops/deploy-service.sh"
+
+      - name: Deploy backend image
+        run: '"${SU_STORE_DIR:?}/backend/ops/deploy-service.sh" backend "$DEPLOY_SHA"'

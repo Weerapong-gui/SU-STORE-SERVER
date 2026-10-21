@@ -4,9 +4,11 @@ from __future__ import annotations
 import os
 from http.server import ThreadingHTTPServer
 
+from core import config
 from core.config import HOST, PORT
-from core.database import ensure_db
+from core.database import ensure_db, open_db
 from core.handler import OrderRequestHandler
+from store.demo_seed import seed_demo
 
 
 class _ReusePortHTTPServer(ThreadingHTTPServer):
@@ -36,6 +38,10 @@ if __name__ == "__main__":
         if pid == 0:
             is_primary = False
             break
+
+    if is_primary and config.DEMO_SEED:
+        with open_db() as connection:
+            seed_demo(connection)
 
     server = _ReusePortHTTPServer((HOST, PORT), OrderRequestHandler)
     role = "primary" if is_primary else "worker"

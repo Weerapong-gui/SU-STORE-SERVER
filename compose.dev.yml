@@ -1,0 +1,24 @@
+services:
+  su-store-api-dev:
+    build: .
+    image: su-store-server:dev
+    container_name: su-store-api-dev
+    ports:
+      - "127.0.0.1:10000:10000"
+    environment:
+      ORDER_API_HOST: 0.0.0.0
+      ORDER_API_PORT: "10000"
+      ORDER_API_TOKEN: dev-token
+      PICKUP_USERNAME: staff
+      PICKUP_PASSWORD: dev
+      ORDER_API_DEMO_SEED: "1"
+      ORDER_API_DB_PATH: /var/data/su-order-api/orders.db
+      ORDER_API_SLIPS_DIR: /var/data/su-order-api/slips
+    volumes:
+      - ./data/dev:/var/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:10000/health', timeout=2)"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s

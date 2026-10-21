@@ -16,3 +16,4 @@ MAX_SLIP_SIZE_BYTES = 5 * 1024 * 1024
 ORDER_API_TOKEN = os.environ.get("ORDER_API_TOKEN", "")
 PICKUP_USERNAME = os.environ.get("PICKUP_USERNAME", "staff")
 PICKUP_PASSWORD = os.environ.get("PICKUP_PASSWORD", "")
+DEMO_SEED = os.environ.get("ORDER_API_DEMO_SEED", "") == "1"

@@ -1,0 +1,40 @@
+# cloudflared and backup services will be added in plan 3.
+services:
+  su-store-api:
+    image: ghcr.io/weerapong-gui/su-store-server:${API_IMAGE_TAG:?}
+    container_name: su-store-api
+    restart: unless-stopped
+    environment:
+      ORDER_API_HOST: 0.0.0.0
+      ORDER_API_PORT: "10000"
+      ORDER_API_DB_PATH: /var/data/su-order-api/orders.db
+      ORDER_API_SLIPS_DIR: /var/data/su-order-api/slips
+      ORDER_API_TOKEN: ${ORDER_API_TOKEN:?}
+      PICKUP_USERNAME: ${PICKUP_USERNAME:-staff}
+      PICKUP_PASSWORD: ${PICKUP_PASSWORD:-}
+      ORDER_API_WORKERS: ${ORDER_API_WORKERS:-1}
+    volumes:
+      - ${SU_STORE_DATA_DIR:?}/order-api:/var/data
+    ulimits:
+      nofile: 65536
+    networks:
+      - su-store-net
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - import urllib.request; urllib.request.urlopen('http://127.0.0.1:10000/health', timeout=2)
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+
+networks:
+  su-store-net:
+    external: true

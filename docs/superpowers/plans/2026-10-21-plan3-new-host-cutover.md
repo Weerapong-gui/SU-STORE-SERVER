@@ -267,3 +267,14 @@
     - ต้องลบ connector บน Mac ออกก่อนเพิ่ม route ใดๆ
     - ทุกขั้นใน dashboard ต้องเขียนชื่อ tunnel พร้อม hostname ของ connector และระบุว่าห้ามรันคำสั่งติดตั้งที่ dashboard แสดง
 
+- **Task 7 Step 3 (ซ้อม):** export ใช้ 9 วินาที API เครื่องเก่าหยุดรวม 17 วินาที · `verify.sh` ตรงทุกตาราง (`store_counters` ตรงทุกแถว) และสลิปครบ
+- **Task 8 (คืนจริง 2026-10-22 ~01:00–02:10):**
+  - **ลำดับต่างจากแผน:** ตั้ง `STORE_V2_GONE=1` + `./deploy.sh api` บนเครื่องเก่า (Step 6) **ก่อน** export รอบสุดท้าย · เหตุผล: ปิดทาง `/v2` ของเครื่องเก่าก่อนคัดลอก ไม่มีออเดอร์หรือเลขใบเสร็จหลุดเข้ามาระหว่างย้าย · `.env` เดิมสำรองไว้ข้างไฟล์ก่อนแก้
+  - export → import → `verify.sh` exit 0 จำนวนแถวตรงกับรอบซ้อม
+  - `data/next-image-cache` ต้องเป็นของ uid 1001 (user `nextjs` ใน image หน้าร้าน) ไม่งั้น Next.js เขียน cache รูปไม่ได้ · แก้ด้วย `chown` ผ่าน container
+  - **เพิ่ม route ใน dashboard ไม่ได้ย้าย DNS ให้** (ต่างจากที่ Step 5 เขียนไว้ว่าจะถามให้ override): `sumfu.store`/`www` ต้องแก้ DNS record ให้ชี้ `su-store-r` เอง และ `fp28` ต้องสร้าง CNAME → `<id ของ su-store>.cfargotunnel.com` เอง · อาการก่อนสร้าง record คือ Cloudflare ตอบ 530 / error 1016
+  - **Redirect Rule:** นอกจาก path ใน spec 4.6 ต้องยกเว้น `/api/order/` (ปุ่ม feedback) และ `/api/site-status` (หน้า FP28 ใช้เช็กปิดร้าน) ด้วย · ตรวจแล้ว `/`, `/products`, `/admin` บน `fp28.sumfu.store` → 302 ไป `sumfu.store` และ `/check-order/fp28` ค้นด้วยรหัสนักศึกษาได้
+  - เปิด FP28 บนเครื่องเก่าจาก `admin.sumfu.xyz` · เปิดร้านใหม่จากหลังร้านใหม่ (audit `v2_site_opened`)
+  - **Step 7 ยังไม่ได้สั่งซื้อจริง:** ตอนเปิดร้านทุก variant สต็อกเป็น 0 จึงสร้างออเดอร์ไม่ได้ · ทดสอบผ่าน `https://sumfu.store` แทน: สร้างออเดอร์ได้ 409 (สต็อกหมด), ค้นออเดอร์ที่ไม่มีได้ 404, API หลังร้านก่อน login ได้ 401, login แล้วอ่าน `/v2/admin/me` และรายการออเดอร์ได้ · **ยังค้าง:** สั่งซื้อ + อัปสลิป + ยกเลิกหนึ่งออเดอร์เมื่อมีสินค้าที่มีสต็อก
+- **Task 9 Step 1 (2026-10-22):** backup 04:00 ได้ไฟล์ ~280 MB (DB ที่ย้ายมามีตาราง FP28 ติดมาด้วยตามที่ spec ให้ปล่อยไว้) และ `pull.sh` 05:30 ดึงไปเครื่องเก่าครบ · container ทั้งสามตัว healthy
+- **Task 9 Step 2–3:** อัปเดต skill `deploy` และ `CLAUDE.md` (ในเครื่อง ไม่ commit) แล้ว · commit บล็อก `/v2` ของ repo เดิมเปิดเป็น PR บน branch `cutover/block-v2` · snapshot ตอนซ้อมบนเครื่องเก่าลบได้ตั้งแต่ 2026-10-29

@@ -1,41 +1,61 @@
 # SU STORE Order API
 
-## repo นี้คืออะไร
+**English** · [ภาษาไทย](README.th.md)
 
-Backend API สำหรับร้าน SU STORE เป็น Python HTTP server ที่ใช้ `http.server` และ SQLite ให้บริการ API ร้าน `/v2/*` และ public routes เช่น `/health`, `/site-status` และ `/product-images/` หน้าร้าน Next.js อยู่ใน repo `SU-STORE-clean` และเรียก API นี้ผ่าน proxy ของตัวเอง
+## What this is
 
-## รัน dev
+The backend for the SU STORE shop ([sumfu.store](https://sumfu.store)). It is a Python HTTP server built on the standard library's `http.server` and SQLite. It serves the store API under `/v2/*` and a few public routes: `/health`, `/site-status` and `/product-images/`. The Next.js storefront lives in [SU-STORE-REMASTER](https://github.com/Weerapong-gui/SU-STORE-REMASTER) and calls this API through its own proxy.
 
-เตรียม Docker และรันจาก root ของ repo:
+## Run it locally
+
+You need Docker. From the repo root:
 
 ```sh
 ./dev.sh
 ```
 
-สคริปต์นี้เปิด API ที่ `http://127.0.0.1:10000` กับ DB ทดลองใน `data/dev/` (ไม่ใช่ข้อมูลจริง) พร้อมสินค้า หมวด หน้าแรก และออเดอร์ตัวอย่าง login หลังร้านด้วย `staff` / `dev` และ token `dev-token` · `./dev.sh reset` ล้าง DB ทดลองแล้วเริ่มใหม่
+The API starts at `http://127.0.0.1:10000` on a sample database in `data/dev/` (not real data), with sample products, categories, a home page and orders.
 
-## ตรวจ
+- Back office login: `staff` / `dev`
+- API token: `dev-token`
+- `./dev.sh reset` wipes the sample database and starts over.
 
-ใช้ Python 3.11 ขึ้นไป สร้าง virtual environment และติดตั้ง `pytest`, `ruff==0.16.10` และ `pyyaml==6.0.2` แล้วรัน:
+## Checks
+
+Use Python 3.11 or newer. Create a virtual environment, install `pytest`, `ruff==0.16.10` and `pyyaml==6.0.2`, then run:
 
 ```sh
 .venv/bin/ruff check .
 ORDER_API_DB_PATH=/tmp/su-order-api/orders.db ORDER_API_SLIPS_DIR=/tmp/su-order-api/slips .venv/bin/python -m pytest tests/ -v
 ```
 
+## Layout
+
+```text
+order_api.py   entry point, starts the HTTP server
+core/          config, database, HTTP handler, public routes, slips
+store/         store API /v2/*: products, orders, receipts, staff, home page
+contract/      shared contract with the storefront (constants, receipt template, OpenAPI)
+ops/           production scripts: deploy, backup, migration
+tests/         pytest
+```
+
 ## Contract
 
-`contract/` ใน repo backend เป็นแหล่งความจริงของ contract ระหว่าง backend กับหน้าร้าน หน้าร้านดึง contract จาก branch `main` ของ repo backend แล้วเก็บสำเนาไว้ใน repo ของตัวเอง
+`contract/` is the source of truth for the contract between the backend and the storefront. The storefront pulls it from this repo's `main` branch and keeps a copy in its own repo. Tests here check that the Python code uses the same values as `contract/`.
 
-กฎความเข้ากันได้:
+Compatibility rule:
 
-> backend ต้องรองรับหน้าร้านที่ deploy อยู่ปัจจุบันเสมอ เพิ่มของใหม่ได้ แต่จะลบหรือเปลี่ยนความหมายของ field/endpoint ได้ก็ต่อเมื่อหน้าร้านเลิกใช้แล้ว งานที่ต้องแก้สองฝั่งให้ merge backend ก่อน
+> The backend must always support the storefront that is currently deployed. It may add things, but it may remove a field or endpoint, or change what one means, only after the storefront has stopped using it. For work that touches both sides, merge the backend first.
 
 ## Deploy
 
-ภาพรวมคือ GitHub Actions สร้าง container image ของ backend และขั้น deploy บนเครื่องที่กำหนดจะดึง image ไปอัปเดต service รายละเอียดการตั้งค่าเครื่องและขั้นตอนปฏิบัติอยู่ใน skill `deploy` ของผู้ดูแลระบบ
+Merging into `main` deploys to production. `.github/workflows/deploy.yml` runs the tests, builds a multi-arch image, pushes it to GHCR (tagged with the commit SHA), then `ops/deploy-service.sh` on the production host pulls it and restarts only the API. If the new container fails its health check, the previous version is restored.
+
+To roll back, run the deploy workflow with an earlier commit: `gh workflow run deploy.yml -f sha=<commit sha>`.
+
+Host details, secrets and data paths are kept off this public repo.
 
 ## Backup
 
-ทุกวันเวลา 04:00 (เวลาไทย) systemd timer `su-store-backup.timer` บนเครื่อง production จะรัน `ops/backup.sh` ซึ่งทำ `sqlite3 .backup()` ของ DB ภายใน container `su-store-api` ไว้ที่ `data/order-api/backups/` และตรวจด้วย `PRAGMA integrity_check` สำเร็จแล้วเขียน `LAST_OK` และเก็บ backup ไว้ 14 วัน ส่วนเครื่องสำรองจะดึง backup สลิป และรูปสินค้าไปเก็บเองทุกวัน (ไม่มีการลบไฟล์ฝั่งปลายทาง) ถ้าล้มเหลวให้ดูที่ `journalctl -u su-store-backup`
-
+Every day at 04:00 (Thailand time), the systemd timer `su-store-backup.timer` on the production host runs `ops/backup.sh`. It takes a `sqlite3 .backup()` of the database inside the `su-store-api` container into `data/order-api/backups/` and checks it with `PRAGMA integrity_check`. On success it writes `LAST_OK` and keeps 14 days of backups. A second machine pulls the backups, slips and product images every day and never deletes anything on its side. If a backup fails, look at `journalctl -u su-store-backup`.
